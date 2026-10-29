@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Basil: Dinner Planner",
+    "slug": "basil-dinner-planner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "name": "Basil: Dinner Planner",
+      "themeColor": "#3F7D5C",
+      "backgroundColor": "#F7F4EE",
+      "output": "single"
+    },
+    "experiments": {
+      "baseUrl": "/basil-dinner-planner"
+    }
+  }
+}
