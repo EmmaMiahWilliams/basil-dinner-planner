@@ -1,4 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavProvider, useNav } from './src/nav';
@@ -7,6 +8,7 @@ import { Cart } from './src/screens/Cart';
 import { CheckIn, Clarify, Thinking } from './src/screens/CheckIn';
 import { Cook } from './src/screens/Cook';
 import { Evals } from './src/screens/Evals';
+import { Feedback } from './src/screens/Feedback';
 import { Home } from './src/screens/Home';
 import { Plan } from './src/screens/Plan';
 import { Progress } from './src/screens/Progress';
@@ -45,7 +47,12 @@ function Root() {
 
 function Router() {
   const { route } = useNav();
-  const { state } = useStore();
+  const { state, logEvent } = useStore();
+  // Pilot signal: which screens are reached, so the PM can see where a workflow was abandoned.
+  useEffect(() => {
+    logEvent({ type: 'screen', screen: route.name });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route]);
   switch (route.name) {
     case 'triage':
       return route.mode === 'first' ? <Triage /> : <TriageEdit key={route.step} step={route.step} />;
@@ -59,6 +66,8 @@ function Router() {
       return <Clarify checkIn={route.checkIn} />;
     case 'evals':
       return <Evals />;
+    case 'feedback':
+      return <Feedback after={route.after} />;
   }
   // Every other screen needs a week in progress.
   if (!state.week) return <Home />;

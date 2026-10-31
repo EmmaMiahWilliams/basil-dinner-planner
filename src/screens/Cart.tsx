@@ -1,6 +1,7 @@
 // Draft cart: only the missing ingredients. The user edits and approves, then it goes to the demo store.
 // The app never checks out.
 
+import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { buildCart } from '../agent/planner';
 import { sendToStore } from '../agent/retailer';
@@ -13,7 +14,7 @@ import { Basil, Button, Card, H1, H2, P, Row, Screen, TopBar } from '../ui/compo
 import { colors, font, space } from '../ui/theme';
 
 export function Cart() {
-  const { state, updateWeek } = useStore();
+  const { state, updateWeek, logEvent } = useStore();
   const nav = useNav();
   const week = state.week!;
   const profile = state.profile!;
@@ -21,6 +22,12 @@ export function Cart() {
   const kept = cart.filter((c) => !week.cartRemoved.includes(c.ingredientId));
   const total = kept.reduce((s, c) => s + c.price, 0);
   const clashes = kept.filter((c) => INGREDIENTS[c.ingredientId].allergens?.some((a) => profile.allergens.includes(a)) || profile.avoid.includes(c.ingredientId));
+
+  const clashKey = clashes.map((c) => c.ingredientId).join(',');
+  useEffect(() => {
+    if (clashKey) logEvent({ type: 'allergen_alert', where: 'cart', items: clashKey.split(',') });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clashKey]);
 
   const toggle = (id: string) =>
     updateWeek((w) => ({ ...w, cartRemoved: w.cartRemoved.includes(id) ? w.cartRemoved.filter((x) => x !== id) : [...w.cartRemoved, id] }));
@@ -40,7 +47,11 @@ export function Cart() {
             label={`Approve & send to ${RETAILER.name}`}
             disabled={clashes.length > 0}
             onPress={() => {
-              updateWeek((w) => ({ ...w, cartApproved: true, today: 0, storeCart: sendToStore(cart, w.cartRemoved, profile), deliverySlot: undefined }));
+              const storeCart = sendToStore(cart, week.cartRemoved, profile);
+              const blocked = storeCart.lines.filter((l) => l.status === 'left_out').map((l) => l.ingredientId);
+              logEvent({ type: 'cart_approved', items: kept.length });
+              if (blocked.length) logEvent({ type: 'allergen_alert', where: 'store_substitute', items: blocked });
+              updateWeek((w) => ({ ...w, cartApproved: true, today: 0, storeCart, deliverySlot: undefined }));
               nav.replace({ name: 'store', stage: 'sending' });
             }}
           />
@@ -81,7 +92,7 @@ export function Cart() {
           </Card>
         );
       })}
-      <P soft>Prices are made up. {RETAILER.name} is a pretend store for this demo: no real grocery account is used.</P>
+      <P soft>Prices are made up. In this supervised pilot {RETAILER.name} is a pretend store: no real grocery account is connected, and Basil never checks out or pays.</P>
     </Screen>
   );
 }

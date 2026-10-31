@@ -18,7 +18,8 @@ export type Route =
   | { name: 'store'; stage: 'sending' | 'store' }
   | { name: 'cook'; index: number }
   | { name: 'progress' }
-  | { name: 'evals' };
+  | { name: 'evals' }
+  | { name: 'feedback'; after: string };
 
 export type TriageStep = 'name' | 'diet' | 'needs' | 'allergens' | 'avoid' | 'preferred' | 'timing' | 'activity' | 'goals';
 

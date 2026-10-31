@@ -19,6 +19,7 @@ import { useStore } from '../state/store';
 import { Basil, Button, Card, Chip, H1, H2, P, ProgressBar, Row, Screen, Segmented, TopBar } from '../ui/components';
 import { colors, font, radius, space } from '../ui/theme';
 import { BaselineSummary } from './Baseline';
+import { PilotBanner } from './Home';
 
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
@@ -234,10 +235,11 @@ export function Triage() {
           <H1>Dinner, sorted.</H1>
         </View>
         <Basil say={line}>{line}</Basil>
+        <PilotBanner />
         <Card tone="sky">
           <P>⏱ 9 questions, about 2 minutes</P>
           <P>✏️ You can change any answer on a Saturday before you plan</P>
-          <P>🔒 Stays on this device. No health records needed</P>
+          <P>🔒 Stays on this device unless you choose to send feedback. No health records needed</P>
         </Card>
       </Screen>
     );

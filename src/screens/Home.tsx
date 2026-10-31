@@ -32,6 +32,8 @@ export function Home() {
         </Pressable>
       </Row>
 
+      <PilotBanner />
+
       {!week ? <SaturdayStart lastWeek={lastWeek} /> : null}
 
       {week && !week.cartApproved ? (
@@ -60,15 +62,37 @@ export function Home() {
         <P>💧 Keep a glass of water or green tea nearby today.</P>
       </Card>
 
+      <Button
+        kind="secondary"
+        label="💬 Give feedback"
+        onPress={() => nav.go({ name: 'feedback', after: !week ? 'home' : !week.cartApproved ? 'planning' : 'cooking_week' })}
+      />
+
       <Row style={{ justifyContent: 'center', gap: space(6), marginTop: space(4) }}>
         <Pressable onPress={() => nav.go({ name: 'evals' })} hitSlop={8}>
           <Text style={{ color: colors.inkSoft, fontSize: font.small, textDecorationLine: 'underline' }}>Behind the scenes: agent tests</Text>
         </Pressable>
         <Pressable onPress={reset} hitSlop={8}>
-          <Text style={{ color: colors.inkSoft, fontSize: font.small, textDecorationLine: 'underline' }}>Reset demo</Text>
+          <Text style={{ color: colors.inkSoft, fontSize: font.small, textDecorationLine: 'underline' }}>Start over</Text>
         </Pressable>
       </Row>
     </Screen>
+  );
+}
+
+/** Says plainly what this build is: a limited, supervised pilot, not a production launch. */
+export function PilotBanner() {
+  const { state } = useStore();
+  return (
+    <Card tone="berry">
+      <Text style={{ fontSize: font.small, fontWeight: '800', color: colors.berry, letterSpacing: 0.5 }}>LIMITED SUPERVISED PILOT</Text>
+      <P>
+        You’re one of a small group testing Basil with the pilot team. You decide every meal, swap and cart item. Basil never checks out or pays for anything.
+      </P>
+      <P soft style={{ fontSize: font.small }}>
+        Not medical advice. Pilot code {state.participantId}.
+      </P>
+    </Card>
   );
 }
 

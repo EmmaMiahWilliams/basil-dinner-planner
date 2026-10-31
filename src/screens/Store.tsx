@@ -16,7 +16,7 @@ type Stage = 'sending' | 'questions' | 'store' | 'checkout';
 const SENDING_LINES = [`Opening your ${RETAILER.name} cart…`, 'Adding your approved items…', 'Checking what’s in stock…'];
 
 export function Store({ initial }: { initial: 'sending' | 'store' }) {
-  const { state, updateWeek } = useStore();
+  const { state, updateWeek, logEvent } = useStore();
   const nav = useNav();
   const week = state.week!;
   const cart = week.storeCart!;
@@ -101,7 +101,7 @@ export function Store({ initial }: { initial: 'sending' | 'store' }) {
 
   // stage === 'store': the demo store's own cart page
   return (
-    <Screen footer={<Button label="Go to checkout" disabled={!week.deliverySlot || t.items === 0} onPress={() => setStage('checkout')} />}>
+    <Screen footer={<Button label="Go to checkout" disabled={!week.deliverySlot || t.items === 0} onPress={() => { logEvent({ type: 'checkout_reached' }); setStage('checkout'); }} />}>
       <StoreHeader />
       <H2>Your cart · {t.items} items</H2>
       <Card style={{ gap: 0, paddingVertical: space(1) }}>

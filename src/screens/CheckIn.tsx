@@ -95,7 +95,7 @@ export function CheckIn() {
 /** Shows the agent's observe/decide/act/check loop step by step, then hands over to the result. */
 export function Thinking({ checkIn }: { checkIn: CheckInData }) {
   const nav = useNav();
-  const { state, setWeek } = useStore();
+  const { state, setWeek, logEvent } = useStore();
   const [shown, setShown] = useState<TraceStep[]>([]);
   const fade = useRef(new Animated.Value(0)).current;
 
@@ -118,6 +118,7 @@ export function Thinking({ checkIn }: { checkIn: CheckInData }) {
           nav.replace({ name: 'clarify', checkIn });
           return;
         }
+        logEvent({ type: 'week_started', pantryId: checkIn.pantryId, energy: checkIn.energy, maxMinutes: checkIn.maxMinutes });
         setWeek({
           pantryId: checkIn.pantryId,
           confirmations: checkIn.confirmations,

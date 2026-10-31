@@ -26,6 +26,7 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run evals
+      - run: npm run pilot:check
       - run: npx expo export --platform web
       # Jekyll would drop the _expo folder; serve files as-is.
       - run: touch dist/.nojekyll && cp dist/index.html dist/404.html
