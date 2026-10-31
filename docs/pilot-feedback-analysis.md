@@ -8,21 +8,24 @@ checkout or makes a purchase.
 
 1. **Collect.** After using Basil, each participant taps **💬 Give feedback** (home screen, or the
    end-of-week screen) and answers three questions: what they liked most, what they liked least, and
-   the top three things to improve. **Send my feedback** downloads a file on web, or opens the share
-   sheet on a phone, so they can send it to the PM. Each file holds their answers, their anonymous
-   pilot code (for example `P-7K3QX`) and these behavioural signals:
+   the top three things to improve. When the pilot backend is on (see `docs/pilot-setup.md`),
+   signed-in participants' records upload automatically a few seconds after anything new happens,
+   and **Send my feedback** adds their answers. Without the backend, **Send my feedback** downloads a
+   file on web, or opens the share sheet on a phone, so they can send it to the PM. Each record holds
+   their answers, their anonymous pilot code (for example `P-7K3QX`) and these behavioural signals:
 
    | Signal | What is logged |
    |---|---|
    | Rejected meals | Each "Change this dinner", with the reason: preference, rule broken (allergen, avoided food, dietary need, eating style) or too complex |
    | Workflow abandonment | Weeks started vs plans approved vs carts approved vs store checkout reached, plus the last screen of an abandoned week |
-   | Cooking drop-off | For each cooking session, how many steps were reached and whether it finished. Video opens are logged too (videos are still YouTube search placeholders, so watch time can't be measured) |
+   | Cooking drop-off | For each cooking session, how many steps were reached and whether it finished. For vetted in-app videos (web), how many seconds were watched and whether it was stopped before 90% |
    | Allergen alerts | A participant flagging a planned dinner as containing an allergen (a planner failure), cart clashes caught, and unsafe store substitutes blocked |
    | Plan-to-Plate | Dinners cooked out of dinners planned for each finished week (goal: 80%), and whether each dinner kept them in 70–140 mg/dL (yes/no only) |
 
-   Names, profiles, exact glucose readings and payment details are never in the file.
+   Names, profiles, pantry contents, exact glucose readings and payment details are never included.
 
-2. **Combine.** Save every file into `pilot-data/` and run `npm run pilot:report`. It keeps the
+2. **Combine.** Run `npm run pilot:pull` to download every signed-in participant's record into
+   `pilot-data/` (or save emailed files there by hand), then run `npm run pilot:report`. It keeps the
    newest export per participant and writes `pilot-data/pilot-report.md`: safety signals first,
    then behaviour by participant, cohort signals and all feedback verbatim.
 

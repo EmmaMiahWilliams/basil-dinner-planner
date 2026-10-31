@@ -85,12 +85,12 @@ export function buildReport(exports: PilotExport[]): string {
 
   // 2. Per participant
   out.push('## 2. Behaviour by participant', '');
-  out.push('| Participant | Weeks started | Abandoned before cart | Meals rejected | Allergen alerts | Cooking drop-offs | Videos opened | Plan-to-Plate | Feedback |');
+  out.push('| Participant | Weeks started | Abandoned before cart | Meals rejected | Allergen alerts | Cooking drop-offs | Video drop-offs | Plan-to-Plate | Feedback |');
   out.push('|---|---|---|---|---|---|---|---|---|');
   for (const x of exports) {
     const s = summarize(x.events, x.feedback);
     const p2p = s.planToPlate.planned ? `${s.planToPlate.cooked}/${s.planToPlate.planned} (${pct(s.planToPlate.cooked, s.planToPlate.planned)})` : 'no week finished';
-    out.push(`| ${x.participantId} | ${s.weeksStarted} | ${s.abandonedBeforeCart} | ${s.mealsRejected} | ${s.allergenAlerts} | ${s.cookingDropOffs}/${s.cookingSessions} | ${s.videosOpened} | ${p2p} | ${s.feedbackResponses} |`);
+    out.push(`| ${x.participantId} | ${s.weeksStarted} | ${s.abandonedBeforeCart} | ${s.mealsRejected} | ${s.allergenAlerts} | ${s.cookingDropOffs}/${s.cookingSessions} | ${s.videoDropOffs}/${s.videoViews} | ${p2p} | ${s.feedbackResponses} |`);
   }
   out.push('');
 
@@ -116,7 +116,13 @@ export function buildReport(exports: PilotExport[]): string {
   const sessions = all.filter((e) => e.type === 'cooking_session') as Extract<PilotEvent, { type: 'cooking_session' }>[];
   const drops = sessions.filter((s) => !s.finished);
   out.push(`- Cooking-step drop-off: ${drops.length} of ${sessions.length} sessions stopped early (${pct(drops.length, sessions.length)})${drops.length ? `; ${drops.map((d) => `${dishName(d.dishId)} at step ${d.stepReached}/${d.totalSteps}`).join(', ')}` : ''}`);
-  out.push(`- Cooking videos opened: ${totals.videosOpened}. These are still YouTube search placeholders, so watch-time drop-off can't be measured yet.`);
+  const views = all.filter((e) => e.type === 'video_watched') as Extract<PilotEvent, { type: 'video_watched' }>[];
+  const early = views.filter((v) => !v.completed);
+  out.push(
+    `- Cooking videos: ${totals.videosOpened} opened, ${views.length} watched in the app, ${early.length} stopped before 90% (${pct(early.length, views.length)})` +
+      (early.length ? `; ${early.map((v) => `${dishName(v.dishId)} at ${v.watchedSeconds}s of ${v.durationSeconds}s`).join(', ')}` : '') +
+      '. Dishes without a vetted video still open a YouTube search, which can’t be measured.',
+  );
   out.push(`- Plan-to-Plate: ${totals.planToPlate.cooked}/${totals.planToPlate.planned} planned dinners cooked (${pct(totals.planToPlate.cooked, totals.planToPlate.planned)}); ${metGoal} of ${exports.length} participants hit the 80% goal.`);
   out.push('');
 

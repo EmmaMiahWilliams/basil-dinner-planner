@@ -7,7 +7,7 @@ import { DAYS, DishFeedback, Learned, PlanRequest, alternatives, dishesFor, effe
 import { CONSTRAINT_DETAILS, ConstraintDetail, DeclineReason, chooseReplacement, declineMeal } from '../agent/review';
 import { DESSERTS, Dish, dish } from '../data/dishes';
 import { INGREDIENTS, PLANT_CHECK_GROUPS, ingredient } from '../data/ingredients';
-import { pantry } from '../data/pantries';
+import { inventoryFor } from '../data/pantries';
 import { Profile } from '../data/profile';
 import { useNav } from '../nav';
 import { Week, useStore } from '../state/store';
@@ -17,7 +17,7 @@ import { colors, font, space } from '../ui/theme';
 export function requestFrom(week: Week, profile: Profile, history: Record<string, DishFeedback[]>, learned?: Learned): PlanRequest {
   return {
     profile,
-    inventory: pantry(week.pantryId).items,
+    inventory: inventoryFor(week.pantryId, week.myItems).items,
     confirmations: week.confirmations,
     energy: week.energy,
     maxMinutes: week.maxMinutes,

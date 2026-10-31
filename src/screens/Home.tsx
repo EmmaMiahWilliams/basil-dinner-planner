@@ -72,6 +72,9 @@ export function Home() {
         <Pressable onPress={() => nav.go({ name: 'evals' })} hitSlop={8}>
           <Text style={{ color: colors.inkSoft, fontSize: font.small, textDecorationLine: 'underline' }}>Behind the scenes: agent tests</Text>
         </Pressable>
+        <Pressable onPress={() => nav.go({ name: 'consent' })} hitSlop={8}>
+          <Text style={{ color: colors.inkSoft, fontSize: font.small, textDecorationLine: 'underline' }}>Pilot & privacy</Text>
+        </Pressable>
         <Pressable onPress={reset} hitSlop={8}>
           <Text style={{ color: colors.inkSoft, fontSize: font.small, textDecorationLine: 'underline' }}>Start over</Text>
         </Pressable>

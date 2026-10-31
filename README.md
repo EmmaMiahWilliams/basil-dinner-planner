@@ -8,7 +8,11 @@ Basil is being piloted with 10 consenting relatives or friends while the Product
 
 - **One-click feedback**: 💬 *Give feedback* (home screen and end of week) asks what they liked most, liked least, and the top three things to improve, then sends a file to the PM with their anonymous pilot code and behavioural signals (rejected meals, workflow abandonment, cooking-step drop-off, video opens, allergen alerts, Plan-to-Plate).
 - **Analysis**: drop the files in `pilot-data/`, run `npm run pilot:report`, then use the Claude Code prompt in [`docs/pilot-feedback-analysis.md`](docs/pilot-feedback-analysis.md). Allergen and safety issues always rank first.
-- **Still open before the pilot is complete** (pilot gates): secure onboarding and login, real pantry inputs (today: three synthetic pantry photos), real cooking videos (today: a YouTube search link), and explicit authorisation of a real grocery account (today: the pretend "Corner Market").
+- **Consent** comes first (bump `CONSENT_VERSION` in `src/screens/Consent.tsx` to re-ask), and *Pilot & privacy* on the home screen lets a participant sign out or leave the pilot, which deletes their data.
+- **Real pantry inputs**: the check-in's *Tick what's in my kitchen* checklist, remembered week to week. The three sample photos remain for demos and evals.
+- **Secure sign-in and automatic upload** (optional): invited participants sign in with an emailed 6-digit code, and their pilot record syncs to Supabase. Setup: [`docs/pilot-setup.md`](docs/pilot-setup.md). Without it, Basil runs in local mode.
+- **Cooking videos**: vetted videos per dish in `src/data/videos.ts` play inside the web app with watch-time tracking; dishes without one still open a YouTube search.
+- **Still open**: explicit authorisation of a real grocery account (today: the pretend "Corner Market"). Retailer APIs need partner approval, so this stays a pre-expansion gate.
 
 ## The loop it proves (from the PRD)
 
@@ -39,6 +43,7 @@ npm start          # scan the QR code with Expo Go on iOS/Android
 npm run evals      # eval cases in the terminal
 npm run typecheck
 npm run pilot:check  # self-test of the pilot feedback pipeline (synthetic data)
+npm run pilot:pull   # PM: download participants' records from Supabase (see docs/pilot-setup.md)
 npm run pilot:report # build the PM report from pilot-data/*.json
 ```
 

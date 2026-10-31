@@ -1,9 +1,11 @@
 // Dinner time: portion picture, one step at a time, video link, then "Did you cook this dinner?"
 
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View } from 'react-native';
 import { dish, videoSearchUrl } from '../data/dishes';
 import { ingredient } from '../data/ingredients';
+import { videoFor } from '../data/videos';
+import { VideoPlayer } from '../ui/VideoPlayer';
 import { useNav } from '../nav';
 import { useStore } from '../state/store';
 import { Basil, Button, Card, H1, H2, P, Plate, ProgressBar, Row, Screen, TopBar } from '../ui/components';
@@ -73,7 +75,12 @@ export function Cook({ index }: { index: number }) {
               </P>
             ))}
           </Card>
-          <Button kind="secondary" label="▶ Watch a short video" onPress={() => { logEvent({ type: 'video_opened', dishId: d.id }); Linking.openURL(videoSearchUrl(d)); }} />
+          <VideoPlayer
+            video={videoFor(d.id)}
+            searchUrl={videoSearchUrl(d)}
+            onOpened={() => logEvent({ type: 'video_opened', dishId: d.id })}
+            onWatched={(w) => logEvent({ type: 'video_watched', dishId: d.id, ...w })}
+          />
         </>
       ) : (
         <>

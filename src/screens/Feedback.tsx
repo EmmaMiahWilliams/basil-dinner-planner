@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import appJson from '../../app.json';
 import { useNav } from '../nav';
+import { uploadExport, useAuth } from '../pilot/backend';
 import { sharePilotExport } from '../pilot/share';
 import { buildExport } from '../pilot/signals';
 import { useStore } from '../state/store';
@@ -24,6 +25,7 @@ const input = {
 export function Feedback({ after }: { after: string }) {
   const { state, addFeedback, logEvent } = useStore();
   const nav = useNav();
+  const { session } = useAuth();
   const [likedMost, setLikedMost] = useState('');
   const [likedLeast, setLikedLeast] = useState('');
   const [improvements, setImprovements] = useState<[string, string, string]>(['', '', '']);
@@ -39,6 +41,12 @@ export function Feedback({ after }: { after: string }) {
     const feedback = includeCurrent ? [...state.feedback, { ...response, at: new Date().toISOString() }] : state.feedback;
     const data = buildExport(state.participantId, state.events, feedback, appJson.expo.version);
     try {
+      if (await uploadExport(data)) {
+        logEvent({ type: 'feedback_sent' });
+        setNote('Sent to the pilot team. Thank you!');
+        setStage('sent');
+        return;
+      }
       const how = await sharePilotExport(data);
       logEvent({ type: 'feedback_sent' });
       setNote(how === 'downloaded' ? 'A file has downloaded. Please send it to the pilot team (email or message is fine).' : how === 'shared' ? 'Sent. Thank you!' : 'Saved on this device. You can send it any time from the home screen.');
@@ -68,7 +76,7 @@ export function Feedback({ after }: { after: string }) {
       footer={
         <View style={{ gap: space(2) }}>
           <Button label="Send my feedback" disabled={!anything} onPress={() => send(true)} />
-          {state.events.length ? <Button kind="ghost" label="Just send my usage data" onPress={() => send(false)} /> : null}
+          {state.events.length && !session ? <Button kind="ghost" label="Just send my usage data" onPress={() => send(false)} /> : null}
         </View>
       }
     >

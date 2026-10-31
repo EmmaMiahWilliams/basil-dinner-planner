@@ -25,6 +25,7 @@ const a = [
   ev({ type: 'allergen_alert', where: 'store_substitute', items: ['pumpkin_seeds'] }),
   ev({ type: 'checkout_reached' }),
   ev({ type: 'video_opened', dishId: 'lentil_soup' }),
+  ev({ type: 'video_watched', dishId: 'lentil_soup', watchedSeconds: 40, durationSeconds: 300, completed: false }),
   ev({ type: 'cooking_session', dishId: 'lentil_soup', stepReached: 2, totalSteps: 5, finished: false }),
   ev({ type: 'cooking_session', dishId: 'egg_veg_frittata', stepReached: 4, totalSteps: 4, finished: true }),
   ev({ type: 'meal_outcome', dishId: 'egg_veg_frittata', cooked: true, inRange: false }),
@@ -46,6 +47,7 @@ checks.push(['allergen alerts counted', sa.allergenAlerts === 2]);
 checks.push(['rejections split by reason', sa.rejectionsByReason.preference === 1 && sa.rejectionsByReason.constraint === 1]);
 checks.push(['cooking drop-off counted', sa.cookingDropOffs === 1 && sa.cookingSessions === 2]);
 checks.push(['Plan-to-Plate from finished weeks', sa.planToPlate.rate === 0.8]);
+checks.push(['video drop-off counted', sa.videoViews === 1 && sa.videoDropOffs === 1]);
 const fbB = funnel(b);
 checks.push(['abandoned week found, with last screen', fbB.started === 2 && fbB.cartApproved === 1 && fbB.lastScreenWhenAbandoned.plan === 1]);
 checks.push(['abandonment in summary', summarize(b, []).abandonedBeforeCart === 1]);
@@ -67,6 +69,7 @@ checks.push(['report leads with safety', report.indexOf('Safety signals') < repo
 checks.push(['planner allergen miss flagged as P0', /Tofu.*P0|P0/.test(report) && report.includes('broke an allergy')]);
 checks.push(['safety words in feedback surfaced', report.includes('Nut warning was scary')]);
 checks.push(['pipes in free text cannot break the table', report.includes('Too many questions / at the start')]);
+checks.push(['video drop-off in report', report.includes('Red lentil & tomato soup at 40s of 300s')]);
 checks.push(['report never claims a purchase', report.includes('no purchase is ever made')]);
 
 for (const [name, ok] of checks) console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);

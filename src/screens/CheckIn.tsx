@@ -1,35 +1,81 @@
-// Saturday check-in: photo of the kitchen, energy level, time limit. Three taps, then the agent runs.
+// Saturday check-in: what's in the kitchen (ticked by the participant, or a sample photo), energy level,
+// time limit. Then the agent runs.
 
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Pressable, Text, View } from 'react-native';
 import { ENERGY_LABEL, Energy, TraceStep, planWeek } from '../agent/planner';
-import { ingredient } from '../data/ingredients';
-import { PANTRY_PHOTOS, pantry } from '../data/pantries';
+import { FoodGroup, INGREDIENTS, ingredient } from '../data/ingredients';
+import { MY_KITCHEN, PANTRY_PHOTOS, inventoryFor } from '../data/pantries';
 import { CheckIn as CheckInData, useNav } from '../nav';
 import { useStore } from '../state/store';
-import { Basil, Button, Card, H2, P, Row, Screen, Segmented, TopBar } from '../ui/components';
+import { Basil, Button, Card, Chip, H2, P, Row, Screen, Segmented, TopBar } from '../ui/components';
 import { colors, font, radius, space } from '../ui/theme';
+
+const SHELVES: { label: string; groups: FoodGroup[] }[] = [
+  { label: 'Beans, lentils & protein', groups: ['beans', 'protein'] },
+  { label: 'Veg & greens', groups: ['greens', 'cruciferous', 'mushroom', 'onion', 'veg'] },
+  { label: 'Dairy', groups: ['dairy'] },
+  { label: 'Rice, grains & noodles', groups: ['grain'] },
+  { label: 'Nuts, seeds & berries', groups: ['nutsSeeds', 'berries'] },
+  { label: 'Cupboard basics', groups: ['pantry'] },
+];
 
 export function CheckIn() {
   const nav = useNav();
+  const { state, setMyPantry } = useStore();
   const [pantryId, setPantryId] = useState<string | null>(null);
+  const [myItems, setMyItems] = useState<string[]>(state.myPantry);
   const [energy, setEnergy] = useState<Energy>('ok');
   const [maxMinutes, setMaxMinutes] = useState(30);
+  const mine = pantryId === MY_KITCHEN;
+  const toggleItem = (id: string) => setMyItems((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
   return (
     <Screen
       footer={
         <Button
           label="Plan my week"
-          disabled={!pantryId}
-          onPress={() => nav.go({ name: 'thinking', checkIn: { pantryId: pantryId!, energy, maxMinutes, confirmations: {} } })}
+          disabled={!pantryId || (mine && myItems.length === 0)}
+          onPress={() => {
+            if (mine) setMyPantry(myItems);
+            nav.go({ name: 'thinking', checkIn: { pantryId: pantryId!, energy, maxMinutes, confirmations: {}, myItems: mine ? myItems : undefined } });
+          }}
         />
       }
     >
       <TopBar title="Saturday check-in" onBack={nav.back} />
-      <Basil say="First, show me your fridge and cupboard. Pick one of the sample photos.">
-        <Text style={{ fontWeight: '700' }}>1.</Text> Show me your fridge and cupboard. Pick a sample photo.
+      <Basil say="First, what's in your fridge and cupboard? Tick what you have, or try a sample kitchen.">
+        <Text style={{ fontWeight: '700' }}>1.</Text> What’s in your fridge and cupboard?
       </Basil>
+      <Pressable
+        accessibilityRole="radio"
+        accessibilityState={{ selected: mine }}
+        onPress={() => setPantryId(MY_KITCHEN)}
+        style={{ padding: space(4), borderRadius: radius.lg, borderWidth: 2, borderColor: mine ? colors.sage : colors.line, backgroundColor: mine ? colors.sageSoft : colors.card, gap: 2 }}
+      >
+        <Text style={{ fontWeight: '700', fontSize: font.large, color: colors.ink }}>{mine ? '✓ ' : ''}🧺 Tick what’s in my kitchen</Text>
+        <Text style={{ color: colors.inkSoft, fontSize: font.small }}>
+          {state.myPantry.length ? `Last time you had ${state.myPantry.length} things. Just change what’s different.` : 'About a minute. Only tick what you’re sure of.'}
+        </Text>
+      </Pressable>
+      {mine ? (
+        <View style={{ gap: space(3) }}>
+          {SHELVES.map((sh) => (
+            <Card key={sh.label}>
+              <H2>{sh.label}</H2>
+              <Row>
+                {Object.values(INGREDIENTS)
+                  .filter((i) => sh.groups.includes(i.group))
+                  .map((i) => (
+                    <Chip key={i.id} label={`${i.emoji} ${i.name}`} selected={myItems.includes(i.id)} onPress={() => toggleItem(i.id)} />
+                  ))}
+              </Row>
+            </Card>
+          ))}
+          <P soft>{myItems.length} ticked. Anything you don’t tick, I’ll add to your shopping list if a dinner needs it.</P>
+        </View>
+      ) : null}
+      <P soft>Or try Basil with a sample kitchen:</P>
       <View style={{ gap: space(3) }}>
         {PANTRY_PHOTOS.map((ph) => {
           const on = pantryId === ph.id;
@@ -102,7 +148,7 @@ export function Thinking({ checkIn }: { checkIn: CheckInData }) {
   useEffect(() => {
     const result = planWeek({
       profile: state.profile!,
-      inventory: pantry(checkIn.pantryId).items,
+      inventory: inventoryFor(checkIn.pantryId, checkIn.myItems).items,
       confirmations: checkIn.confirmations,
       energy: checkIn.energy,
       maxMinutes: checkIn.maxMinutes,
@@ -121,6 +167,7 @@ export function Thinking({ checkIn }: { checkIn: CheckInData }) {
         logEvent({ type: 'week_started', pantryId: checkIn.pantryId, energy: checkIn.energy, maxMinutes: checkIn.maxMinutes });
         setWeek({
           pantryId: checkIn.pantryId,
+          myItems: checkIn.myItems,
           confirmations: checkIn.confirmations,
           energy: checkIn.energy,
           maxMinutes: checkIn.maxMinutes,
@@ -150,7 +197,7 @@ export function Thinking({ checkIn }: { checkIn: CheckInData }) {
       </Animated.View>
       <H2>Basil is planning your week…</H2>
       <P soft>
-        {ENERGY_LABEL[checkIn.energy]} · up to {checkIn.maxMinutes} min · {pantry(checkIn.pantryId).title}
+        {ENERGY_LABEL[checkIn.energy]} · up to {checkIn.maxMinutes} min · {inventoryFor(checkIn.pantryId, checkIn.myItems).title}
       </P>
       <View style={{ gap: space(2) }}>
         {shown.map((t, i) => (
@@ -170,7 +217,7 @@ export function Thinking({ checkIn }: { checkIn: CheckInData }) {
 /** The agent stopped because the photo was unclear. The user answers before anything is planned. */
 export function Clarify({ checkIn }: { checkIn: CheckInData }) {
   const nav = useNav();
-  const unsure = pantry(checkIn.pantryId).items.filter((i) => i.confidence === 'unsure');
+  const unsure = inventoryFor(checkIn.pantryId, checkIn.myItems).items.filter((i) => i.confidence === 'unsure');
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const allAnswered = unsure.every((i) => answers[i.id] !== undefined);
   const line = 'Before I plan anything, I need to check a couple of things I couldn’t see clearly. I’d rather ask than guess.';

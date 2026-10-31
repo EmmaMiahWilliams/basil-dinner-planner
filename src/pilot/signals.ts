@@ -11,11 +11,14 @@ export type PilotEvent = { at: string } & (
   | { type: 'cart_approved'; items: number }
   | { type: 'checkout_reached' }
   | { type: 'video_opened'; dishId: string }
+  /** In-app video: how much was watched before the participant moved on. */
+  | { type: 'video_watched'; dishId: string; watchedSeconds: number; durationSeconds: number; completed: boolean }
   | { type: 'cooking_session'; dishId: string; stepReached: number; totalSteps: number; finished: boolean }
   | { type: 'meal_outcome'; dishId: string; cooked: boolean; inRange: boolean | null }
   | { type: 'week_finished'; cooked: number; planned: number }
   | { type: 'feedback_sent' }
   | { type: 'reset' }
+  | { type: 'consent_given'; version: number }
 );
 
 type Dist<T, K> = T extends unknown ? Omit<T, K & keyof T> : never;
@@ -52,6 +55,9 @@ export type SignalSummary = {
   rejectionsByReason: Record<string, number>;
   allergenAlerts: number;
   videosOpened: number;
+  /** In-app video views, and views stopped before 90% of the video. */
+  videoViews: number;
+  videoDropOffs: number;
   cookingSessions: number;
   /** Cooking sessions that stopped before the last step. A proxy for video/instruction drop-off. */
   cookingDropOffs: number;
@@ -74,6 +80,7 @@ export function summarize(events: PilotEvent[], feedback: FeedbackResponse[]): S
   const rejectionsByReason: Record<string, number> = {};
   for (const e of events) if (e.type === 'meal_rejected') rejectionsByReason[e.reason] = (rejectionsByReason[e.reason] ?? 0) + 1;
   const sessions = events.filter((e): e is Extract<PilotEvent, { type: 'cooking_session' }> => e.type === 'cooking_session');
+  const videos = events.filter((e): e is Extract<PilotEvent, { type: 'video_watched' }> => e.type === 'video_watched');
   const outcomes = events.filter((e): e is Extract<PilotEvent, { type: 'meal_outcome' }> => e.type === 'meal_outcome');
   const weeks = events.filter((e): e is Extract<PilotEvent, { type: 'week_finished' }> => e.type === 'week_finished');
   const cooked = weeks.reduce((s, w) => s + w.cooked, 0);
@@ -90,6 +97,8 @@ export function summarize(events: PilotEvent[], feedback: FeedbackResponse[]): S
     rejectionsByReason,
     allergenAlerts: count('allergen_alert'),
     videosOpened: count('video_opened'),
+    videoViews: videos.length,
+    videoDropOffs: videos.filter((v) => !v.completed).length,
     cookingSessions: sessions.length,
     cookingDropOffs: sessions.filter((s) => !s.finished).length,
     mealsCooked: outcomes.filter((o) => o.cooked).length,

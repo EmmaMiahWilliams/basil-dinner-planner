@@ -12,6 +12,8 @@ import { FeedbackResponse, PilotEvent, PilotEventInput, newParticipantId } from 
 
 export type Week = {
   pantryId: string;
+  /** Items ticked on the "my kitchen" checklist, when pantryId is 'mine'. */
+  myItems?: string[];
   confirmations: Record<string, boolean>;
   energy: Energy;
   maxMinutes: number;
@@ -43,11 +45,15 @@ export type AppState = {
   learned: Learned;
   /** Supervised pilot: anonymous code the Product Manager uses to match an export to a participant. */
   participantId: string;
+  /** Pilot consent: which version of the consent text was agreed, and when. Null until agreed. */
+  consent: { version: number; at: string } | null;
+  /** Last "my kitchen" checklist, pre-ticked next Saturday so only changes need tapping. */
+  myPantry: string[];
   events: PilotEvent[];
   feedback: FeedbackResponse[];
 };
 
-const EMPTY: AppState = { profile: null, week: null, history: {}, pastWeeks: [], learned: NO_LEARNING, participantId: '', events: [], feedback: [] };
+const EMPTY: AppState = { profile: null, week: null, history: {}, pastWeeks: [], learned: NO_LEARNING, participantId: '', consent: null, myPantry: [], events: [], feedback: [] };
 /** Cap so a long pilot can't grow storage without bound. */
 const MAX_EVENTS = 2000;
 const stamp = (e: PilotEventInput): PilotEvent => ({ ...e, at: new Date().toISOString() }) as PilotEvent;
@@ -60,11 +66,14 @@ type Ctx = {
   setProfile: (p: Profile) => void;
   setWeek: (w: Week | null) => void;
   setLearned: (l: Learned) => void;
+  setMyPantry: (items: string[]) => void;
   updateWeek: (fn: (w: Week) => Week) => void;
   recordFeedback: (dishId: string, fb: DishFeedback) => void;
   finishWeek: () => void;
   reset: () => void;
   logEvent: (e: PilotEventInput) => void;
+  giveConsent: (version: number) => void;
+  withdraw: () => void;
   addFeedback: (f: Omit<FeedbackResponse, 'at'>) => void;
 };
 
@@ -101,6 +110,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setProfile: (profile) => setState((s) => ({ ...s, profile })),
       setWeek: (week) => setState((s) => ({ ...s, week })),
       setLearned: (learned) => setState((s) => ({ ...s, learned })),
+      setMyPantry: (myPantry) => setState((s) => ({ ...s, myPantry })),
       updateWeek: (fn) => setState((s) => (s.week ? { ...s, week: fn(s.week) } : s)),
       recordFeedback: (dishId, fb) =>
         setState((s) => ({ ...s, history: { ...s.history, [dishId]: [...(s.history[dishId] ?? []), fb] } })),
@@ -119,8 +129,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }),
       // Starting over clears the plan and profile but keeps the pilot record, so the PM still sees it.
       reset: () =>
-        setState((s) => withEvent({ ...EMPTY, participantId: s.participantId, events: s.events, feedback: s.feedback }, { type: 'reset' })),
+        setState((s) => withEvent({ ...EMPTY, participantId: s.participantId, consent: s.consent, events: s.events, feedback: s.feedback }, { type: 'reset' })),
       logEvent: (e) => setState((s) => withEvent(s, e)),
+      giveConsent: (version) => setState((s) => withEvent({ ...s, consent: { version, at: new Date().toISOString() } }, { type: 'consent_given', version })),
+      // Leaving the pilot wipes everything on this device, including the pilot record, and issues a new code.
+      withdraw: () => setState({ ...EMPTY, participantId: newParticipantId() }),
       addFeedback: (f) => setState((s) => ({ ...s, feedback: [...s.feedback, { ...f, at: new Date().toISOString() }] })),
     }),
     [state, ready],
