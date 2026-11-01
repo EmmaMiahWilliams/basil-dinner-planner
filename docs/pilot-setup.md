@@ -14,7 +14,7 @@ About 20 minutes, all in a browser. Nothing here costs money on Supabase's free 
 3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up". Leave the
    **Email** provider on. Only people you invite can then sign in.
 4. **Authentication → Emails → Magic Link** template: make sure it includes `{{ .Token }}` so the
-   email shows the 6-digit code, for example: `Your Basil sign-in code is {{ .Token }}`.
+   email shows the sign-in code, for example: `Your Basil sign-in code is {{ .Token }}`.
 5. **Authentication → Users → Add user → Send invitation** (or **Create new user** with
    "Auto confirm" ticked) for each of the 10 participants' email addresses.
 

@@ -57,7 +57,7 @@ export function useAuth(): Auth {
 }
 
 /**
- * Step 1 of sign-in: email a 6-digit code. Only people the PM has invited can sign in
+ * Step 1 of sign-in: email a one-time code. Only people the PM has invited can sign in
  * (shouldCreateUser: false), which keeps the pilot to its 10 participants.
  */
 export async function sendCode(email: string): Promise<string | null> {

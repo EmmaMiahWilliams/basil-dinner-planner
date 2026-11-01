@@ -1,4 +1,4 @@
-// Pilot sign-in: email, then a 6-digit code from the email. No passwords to remember.
+// Pilot sign-in: email, then the 6–10 digit code from the email (length is set in Supabase). No passwords to remember.
 
 import { useState } from 'react';
 import { TextInput, View } from 'react-native';
@@ -26,7 +26,7 @@ export function SignIn() {
 
   const line =
     stage === 'email'
-      ? 'Sign in with the email address you gave the pilot team. I’ll send you a 6-digit code. No password needed.'
+      ? 'Sign in with the email address you gave the pilot team. I’ll email you a sign-in code. No password needed.'
       : `I’ve sent a code to ${email.trim()}. It can take a minute to arrive.`;
 
   return (
@@ -60,13 +60,13 @@ export function SignIn() {
       ) : (
         <TextInput
           value={code}
-          onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 6))}
-          placeholder="123456"
+          onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 10))}
+          placeholder="••••••"
           placeholderTextColor={colors.inkSoft}
-          accessibilityLabel="6-digit code"
+          accessibilityLabel="Code from the email"
           keyboardType="number-pad"
           autoComplete="one-time-code"
-          style={[input, { letterSpacing: 8, textAlign: 'center', fontSize: font.title }]}
+          style={[input, { letterSpacing: 6, textAlign: 'center', fontSize: font.title }]}
           autoFocus
         />
       )}
