@@ -1,21 +1,35 @@
 // Dinner time: portion picture, one step at a time, video link, then "Did you cook this dinner?"
 
-import { useState } from 'react';
-import { Linking, Modal, Pressable, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Modal, Pressable, Text, View } from 'react-native';
 import { dish, videoSearchUrl } from '../data/dishes';
 import { ingredient } from '../data/ingredients';
+import { videoFor } from '../data/videos';
+import { VideoPlayer } from '../ui/VideoPlayer';
 import { useNav } from '../nav';
 import { useStore } from '../state/store';
 import { Basil, Button, Card, H1, H2, P, Plate, ProgressBar, Row, Screen, TopBar } from '../ui/components';
 import { colors, font, radius, space } from '../ui/theme';
 
 export function Cook({ index }: { index: number }) {
-  const { state } = useStore();
+  const { state, logEvent } = useStore();
   const nav = useNav();
   const meal = state.week!.meals[index];
   const d = dish(meal.dishId);
   const [step, setStep] = useState(-1); // -1 = overview
   const [asking, setAsking] = useState(false);
+
+  // Pilot signal: how far through the steps the participant got before leaving this screen.
+  const furthest = useRef({ step: -1, finished: false });
+  furthest.current.step = Math.max(furthest.current.step, step);
+  useEffect(
+    () => () => {
+      const f = furthest.current;
+      if (f.step >= 0) logEvent({ type: 'cooking_session', dishId: d.id, stepReached: f.step + 1, totalSteps: d.steps.length, finished: f.finished });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   const onLast = step === d.steps.length - 1;
   return (
@@ -29,7 +43,7 @@ export function Cook({ index }: { index: number }) {
         ) : (
           <Row style={{ flexWrap: 'nowrap' }}>
             <Button style={{ flex: 1 }} kind="secondary" label="Back" onPress={() => setStep(step - 1)} />
-            <Button style={{ flex: 2 }} label={onLast ? 'Done! 🍽️' : 'Next step'} onPress={() => (onLast ? setAsking(true) : setStep(step + 1))} />
+            <Button style={{ flex: 2 }} label={onLast ? 'Done! 🍽️' : 'Next step'} onPress={() => { if (onLast) { furthest.current.finished = true; setAsking(true); } else setStep(step + 1); }} />
           </Row>
         )
       }
@@ -61,7 +75,12 @@ export function Cook({ index }: { index: number }) {
               </P>
             ))}
           </Card>
-          <Button kind="secondary" label="▶ Watch a short video" onPress={() => Linking.openURL(videoSearchUrl(d))} />
+          <VideoPlayer
+            video={videoFor(d.id)}
+            searchUrl={videoSearchUrl(d)}
+            onOpened={() => logEvent({ type: 'video_opened', dishId: d.id })}
+            onWatched={(w) => logEvent({ type: 'video_watched', dishId: d.id, ...w })}
+          />
         </>
       ) : (
         <>
@@ -81,7 +100,7 @@ export function Cook({ index }: { index: number }) {
 
 /** The PRD's after-dinner popup: cooked yes/no, then a simple glucose yes/no. */
 export function FeedbackModal({ index, visible, onClose, onDone }: { index: number; visible: boolean; onClose: () => void; onDone: () => void }) {
-  const { state, updateWeek, recordFeedback } = useStore();
+  const { state, updateWeek, recordFeedback, logEvent } = useStore();
   const [stage, setStage] = useState<'cooked' | 'glucose' | 'thanks'>('cooked');
   const [cooked, setCooked] = useState<boolean | null>(null);
   const week = state.week!;
@@ -97,6 +116,7 @@ export function FeedbackModal({ index, visible, onClose, onDone }: { index: numb
       today: Math.max(w.today, index + 1),
     }));
     recordFeedback(meal.dishId, { cooked: cooked ?? undefined, inRange: inRange ?? undefined });
+    logEvent({ type: 'meal_outcome', dishId: meal.dishId, cooked: cooked === true, inRange });
     setStage('thanks');
   };
 
@@ -158,6 +178,7 @@ export function FeedbackModal({ index, visible, onClose, onDone }: { index: numb
       today: Math.max(w.today, index + 1),
     }));
     recordFeedback(meal.dishId, { cooked: c });
+    logEvent({ type: 'meal_outcome', dishId: meal.dishId, cooked: c, inRange: null });
     setStage('thanks');
   }
 }

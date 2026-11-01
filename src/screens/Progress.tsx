@@ -51,6 +51,11 @@ export function Progress() {
       </View>
       <ProgressBar value={score.rate} color={score.success ? colors.sage : colors.peach} />
       <Basil say={line}>{line}</Basil>
+      <Card tone="berry">
+        <H2>💬 How was Basil this week?</H2>
+        <P>Three quick questions help the pilot team decide what to fix first.</P>
+        <Button kind="secondary" label="Give feedback" onPress={() => nav.go({ name: 'feedback', after: 'week_finished' })} />
+      </Card>
       <Card>
         {week.meals.map((m, i) => (
           <Row key={m.day} style={{ justifyContent: 'space-between' }}>

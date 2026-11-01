@@ -26,7 +26,13 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run evals
+      - run: npm run pilot:check
       - run: npx expo export --platform web
+        env:
+          # Pilot sign-in and upload switch on when these repository variables are set
+          # (Settings > Secrets and variables > Actions > Variables). Unset = local mode.
+          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
       # Jekyll would drop the _expo folder; serve files as-is.
       - run: touch dist/.nojekyll && cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3

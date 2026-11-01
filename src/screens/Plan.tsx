@@ -7,7 +7,7 @@ import { DAYS, DishFeedback, Learned, PlanRequest, alternatives, dishesFor, effe
 import { CONSTRAINT_DETAILS, ConstraintDetail, DeclineReason, chooseReplacement, declineMeal } from '../agent/review';
 import { DESSERTS, Dish, dish } from '../data/dishes';
 import { INGREDIENTS, PLANT_CHECK_GROUPS, ingredient } from '../data/ingredients';
-import { pantry } from '../data/pantries';
+import { inventoryFor } from '../data/pantries';
 import { Profile } from '../data/profile';
 import { useNav } from '../nav';
 import { Week, useStore } from '../state/store';
@@ -17,7 +17,7 @@ import { colors, font, space } from '../ui/theme';
 export function requestFrom(week: Week, profile: Profile, history: Record<string, DishFeedback[]>, learned?: Learned): PlanRequest {
   return {
     profile,
-    inventory: pantry(week.pantryId).items,
+    inventory: inventoryFor(week.pantryId, week.myItems).items,
     confirmations: week.confirmations,
     energy: week.energy,
     maxMinutes: week.maxMinutes,
@@ -28,7 +28,7 @@ export function requestFrom(week: Week, profile: Profile, history: Record<string
 }
 
 export function Plan() {
-  const { state, updateWeek, setLearned } = useStore();
+  const { state, updateWeek, setLearned, logEvent } = useStore();
   const nav = useNav();
   const week = state.week!;
   const profile = state.profile!;
@@ -48,6 +48,10 @@ export function Plan() {
 
   const decline = (day: string, reason: DeclineReason) => {
     const out = declineMeal(req, week.meals, day, reason);
+    const dishId = week.meals.find((m) => m.day === day)?.dishId ?? '';
+    logEvent({ type: 'meal_rejected', dishId, reason: reason.kind, detail: reason.kind === 'constraint' ? reason.detail : undefined });
+    // A planned dinner the participant says contains an allergen is a safety signal for the PM, not a preference.
+    if (reason.kind === 'constraint' && reason.detail === 'allergen') logEvent({ type: 'allergen_alert', where: 'plan_flagged', items: [dishId] });
     updateWeek((w) => ({ ...w, meals: out.meals, rejected: out.rejected }));
     setLearned(out.learned);
     setChanging(null);
@@ -95,6 +99,7 @@ export function Plan() {
           <Button
             label="Looks good, show my cart"
             onPress={() => {
+              logEvent({ type: 'plan_approved', meals: week.meals.length });
               updateWeek((w) => ({ ...w, planApproved: true, cooked: w.meals.map(() => null), inRange: w.meals.map(() => null) }));
               nav.go({ name: 'cart' });
             }}

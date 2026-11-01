@@ -3,7 +3,7 @@
 import { ReactNode, createContext, useContext, useState } from 'react';
 import { Energy } from './agent/planner';
 
-export type CheckIn = { pantryId: string; energy: Energy; maxMinutes: number; confirmations: Record<string, boolean> };
+export type CheckIn = { pantryId: string; energy: Energy; maxMinutes: number; confirmations: Record<string, boolean>; myItems?: string[] };
 
 export type Route =
   | { name: 'triage'; mode: 'first' }
@@ -18,7 +18,9 @@ export type Route =
   | { name: 'store'; stage: 'sending' | 'store' }
   | { name: 'cook'; index: number }
   | { name: 'progress' }
-  | { name: 'evals' };
+  | { name: 'evals' }
+  | { name: 'feedback'; after: string }
+  | { name: 'consent' };
 
 export type TriageStep = 'name' | 'diet' | 'needs' | 'allergens' | 'avoid' | 'preferred' | 'timing' | 'activity' | 'goals';
 

@@ -57,3 +57,11 @@ export function pantry(id: string): PantryPhoto {
   if (!found) throw new Error(`Unknown pantry photo: ${id}`);
   return found;
 }
+
+/** The participant's own kitchen: items they ticked on the check-in. Ticked items are "sure". */
+export const MY_KITCHEN = 'mine';
+
+export function inventoryFor(pantryId: string, myItems: string[] = []): { title: string; items: InventoryItem[] } {
+  if (pantryId === MY_KITCHEN) return { title: 'Your kitchen', items: sure(...myItems) };
+  return pantry(pantryId);
+}
