@@ -1,17 +1,17 @@
 /// <reference types="node" />
 // PM only: download every participant's latest pilot export from Supabase into pilot-data/, ready for
 // `npm run pilot:report`. Needs the service-role key, which must never be committed or put in the app:
-//   SUPABASE_URL=https://xxxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=... npm run pilot:pull
+//   SUPABASE_SERVICE_ROLE_KEY=... npm run pilot:pull
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import { isPilotExport } from '../src/pilot/signals';
 
-const url = process.env.SUPABASE_URL ?? process.env.EXPO_PUBLIC_SUPABASE_URL;
+const url = process.env.SUPABASE_URL ?? process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'https://gmpiktvtojhsnuaeszxe.supabase.co';
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!url || !key) {
-  console.error('Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (Supabase > Project Settings > API).');
+  console.error('Set SUPABASE_SERVICE_ROLE_KEY (Supabase > Project Settings > API).');
   process.exit(1);
 }
 

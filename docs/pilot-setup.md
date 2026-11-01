@@ -20,6 +20,9 @@ About 20 minutes, all in a browser. Nothing here costs money on Supabase's free 
 
 ## 2. Connect the live site
 
+The pilot project (`gmpiktvtojhsnuaeszxe`) is already wired into `src/pilot/backend.tsx`, so you can
+skip this section. Use it only to point a build at a different project.
+
 1. In Supabase, **Project Settings → API**: copy the **Project URL** and the **anon public** key.
 2. In GitHub, **repo → Settings → Secrets and variables → Actions → Variables → New repository
    variable**: add `SUPABASE_URL` and `SUPABASE_ANON_KEY` with those values.
@@ -35,7 +38,7 @@ For phones with Expo Go, put the same two values in a local `.env` file as
 ## 3. Collect the data (PM only)
 
 ```bash
-SUPABASE_URL=https://xxxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=... npm run pilot:pull
+SUPABASE_SERVICE_ROLE_KEY=... npm run pilot:pull
 npm run pilot:report
 ```
 

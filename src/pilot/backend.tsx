@@ -1,7 +1,6 @@
 // Optional pilot backend (Supabase): secure email-code sign-in and automatic upload of pilot exports.
-// It switches on only when EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY are set at build
-// time. Without them Basil runs in local mode: no sign-in, and feedback is sent as a file instead.
-// The anon key is designed to be public; row-level security (supabase/pilot.sql) is what protects data.
+// In local mode (backend switched off) there is no sign-in, and feedback is sent as a file instead.
+// Row-level security (supabase/pilot.sql) is what protects participants' data.
 
 import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,11 +9,18 @@ import { ReactNode, createContext, useContext, useEffect, useState } from 'react
 import { Platform } from 'react-native';
 import { PilotExport } from './signals';
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+// The pilot project's URL and anon key. Both are public by design (row-level security protects the
+// data), so they live in the code. EXPO_PUBLIC_SUPABASE_URL / _ANON_KEY override them, and setting
+// either to "off" builds the app in local mode.
+const PILOT_URL = 'https://gmpiktvtojhsnuaeszxe.supabase.co';
+const PILOT_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGlrdHZ0b2poc251YWVzenhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1NTI1NDAsImV4cCI6MjEwOTEyODU0MH0.TXmlFI6yArkckoNF7JGk804UN9IfMdt_mhEvlT_OIng';
+const url = process.env.EXPO_PUBLIC_SUPABASE_URL || PILOT_URL;
+const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || PILOT_ANON_KEY;
+const off = url === 'off' || anonKey === 'off';
 
 export const backend: SupabaseClient | null =
-  url && anonKey
+  !off
     ? createClient(url, anonKey, {
         auth: {
           // Web uses the browser's localStorage; native keeps the session in AsyncStorage.
