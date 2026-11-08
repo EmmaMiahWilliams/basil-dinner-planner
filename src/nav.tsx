@@ -16,6 +16,7 @@ export type Route =
   | { name: 'plan' }
   | { name: 'cart' }
   | { name: 'store'; stage: 'sending' | 'store' }
+  | { name: 'target'; stage: 'account' | 'list' }
   | { name: 'cook'; index: number }
   | { name: 'progress' }
   | { name: 'evals' }

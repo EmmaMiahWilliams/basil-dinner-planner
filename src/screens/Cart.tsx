@@ -5,10 +5,12 @@ import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { buildCart } from '../agent/planner';
 import { sendToStore } from '../agent/retailer';
+import { buildTargetList, usd } from '../agent/target';
 import { dish } from '../data/dishes';
 import { INGREDIENTS, ingredient } from '../data/ingredients';
 import { useNav } from '../nav';
 import { RETAILER } from '../data/store';
+import { TARGET_PRODUCTS, TARGET } from '../data/target';
 import { useStore } from '../state/store';
 import { Basil, Button, Card, H1, H2, P, Row, Screen, TopBar } from '../ui/components';
 import { colors, font, space } from '../ui/theme';
@@ -44,14 +46,25 @@ export function Cart() {
             <Text style={{ fontSize: font.large, fontWeight: '800', color: colors.ink }}>£{total.toFixed(2)}</Text>
           </Row>
           <Button
-            label={`Approve & send to ${RETAILER.name}`}
+            label={`${TARGET.emoji} Approve & shop at Target`}
+            disabled={clashes.length > 0 || kept.length === 0}
+            onPress={() => {
+              const targetList = buildTargetList(cart, week.cartRemoved, profile);
+              logEvent({ type: 'cart_approved', items: kept.length });
+              updateWeek((w) => ({ ...w, cartApproved: true, today: 0, retailer: 'target', targetList, targetAdded: [], storeCart: undefined, deliverySlot: undefined }));
+              nav.replace({ name: 'target', stage: state.targetAccount ? 'list' : 'account' });
+            }}
+          />
+          <Button
+            kind="secondary"
+            label={`Use ${RETAILER.name} (demo)`}
             disabled={clashes.length > 0}
             onPress={() => {
               const storeCart = sendToStore(cart, week.cartRemoved, profile);
               const blocked = storeCart.lines.filter((l) => l.status === 'left_out').map((l) => l.ingredientId);
               logEvent({ type: 'cart_approved', items: kept.length });
               if (blocked.length) logEvent({ type: 'allergen_alert', where: 'store_substitute', items: blocked });
-              updateWeek((w) => ({ ...w, cartApproved: true, today: 0, storeCart, deliverySlot: undefined }));
+              updateWeek((w) => ({ ...w, cartApproved: true, today: 0, retailer: 'demo', storeCart, deliverySlot: undefined, targetList: undefined, targetAdded: undefined }));
               nav.replace({ name: 'store', stage: 'sending' });
             }}
           />
@@ -92,7 +105,11 @@ export function Cart() {
           </Card>
         );
       })}
-      <P soft>Prices are made up. In this supervised pilot {RETAILER.name} is a pretend store: no real grocery account is connected, and Basil never checks out or pays.</P>
+      <P soft>
+        £ prices are made up for {RETAILER.name}, a pretend store. Shopping at Target uses your own Target.com account: you add the real products to your Target cart
+        yourself and see Target’s real US prices (about {usd(kept.reduce((s, c) => s + (TARGET_PRODUCTS[c.ingredientId]?.estimateUsd ?? 0), 0))} by Basil’s rough guide). Basil never
+        signs in to your account, checks out or pays.
+      </P>
     </Screen>
   );
 }

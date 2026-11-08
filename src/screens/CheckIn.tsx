@@ -2,11 +2,13 @@
 // time limit. Then the agent runs.
 
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, Text, View } from 'react-native';
+import { Animated, Image, Modal, Pressable, Text, View } from 'react-native';
 import { ENERGY_LABEL, Energy, TraceStep, planWeek } from '../agent/planner';
 import { FoodGroup, INGREDIENTS, ingredient } from '../data/ingredients';
 import { MY_KITCHEN, PANTRY_PHOTOS, inventoryFor } from '../data/pantries';
 import { CheckIn as CheckInData, useNav } from '../nav';
+import { AddResult, usePantryPhotos } from '../state/photos';
+import { MAX_PHOTOS_PER_WEEK, discardBy } from '../state/photoRules';
 import { useStore } from '../state/store';
 import { Basil, Button, Card, Chip, H2, P, Row, Screen, Segmented, TopBar } from '../ui/components';
 import { colors, font, radius, space } from '../ui/theme';
@@ -60,6 +62,7 @@ export function CheckIn() {
       </Pressable>
       {mine ? (
         <View style={{ gap: space(3) }}>
+          <MyPhotos />
           {SHELVES.map((sh) => (
             <Card key={sh.label}>
               <H2>{sh.label}</H2>
@@ -135,6 +138,76 @@ export function CheckIn() {
         options={[15, 20, 30].map((m) => ({ value: m, label: `${m} min` }))}
       />
     </Screen>
+  );
+}
+
+const PHOTO_MESSAGE: Record<Exclude<AddResult, 'added' | 'cancelled'>, string> = {
+  limit: `That’s your ${MAX_PHOTOS_PER_WEEK} photos for this week. You can still tick the list.`,
+  no_permission: 'Basil needs permission to use the camera or photos. You can turn it on in your phone’s settings, or just tick the list.',
+  failed: 'That photo didn’t save. Try again, or just tick the list.',
+};
+
+/**
+ * Up to 5 photos of the participant's own fridge and cupboard, to look at while ticking the list.
+ * They stay on this device and are deleted at the end of the weekly planning cycle.
+ */
+function MyPhotos() {
+  const { cycle, left, add, remove } = usePantryPhotos();
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
+  const by = discardBy(cycle);
+  const take = async (source: 'camera' | 'library') => {
+    setBusy(true);
+    setNote(null);
+    const r = await add(source);
+    setBusy(false);
+    if (r !== 'added' && r !== 'cancelled') setNote(PHOTO_MESSAGE[r]);
+  };
+  const viewed = cycle.photos.find((p) => p.id === viewing);
+
+  return (
+    <Card>
+      <H2>📸 Photos of my fridge and cupboard (optional)</H2>
+      <P soft>
+        Snap your shelves, then tick the list below while looking at them. Up to {MAX_PHOTOS_PER_WEEK} a week. They stay on this device and are deleted when this week’s plan ends
+        {by ? ` (by ${by.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'short' })} at the latest)` : ''}.
+      </P>
+      {cycle.photos.length ? (
+        <Row>
+          {cycle.photos.map((p) => (
+            <View key={p.id}>
+              <Pressable accessibilityRole="imagebutton" accessibilityLabel="View photo larger" onPress={() => setViewing(p.id)}>
+                <Image source={{ uri: p.uri }} style={{ width: 96, height: 96, borderRadius: radius.sm, backgroundColor: colors.line }} />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Remove photo"
+                hitSlop={8}
+                onPress={() => remove(p.id)}
+                style={{ position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(31,42,36,0.75)', borderRadius: 999, width: 26, height: 26, alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Text style={{ color: '#fff', fontWeight: '800' }}>×</Text>
+              </Pressable>
+            </View>
+          ))}
+        </Row>
+      ) : null}
+      <Row style={{ flexWrap: 'nowrap' }}>
+        <Button style={{ flex: 1 }} kind="secondary" label={busy ? 'Saving…' : '📷 Camera'} disabled={busy || left === 0} onPress={() => take('camera')} />
+        <Button style={{ flex: 1 }} kind="secondary" label="🖼️ My photos" disabled={busy || left === 0} onPress={() => take('library')} />
+      </Row>
+      <P soft>
+        {left} of {MAX_PHOTOS_PER_WEEK} photos left this week. Basil doesn’t look at them for you yet: you still tick what you see.
+      </P>
+      {note ? <P style={{ color: colors.danger }}>{note}</P> : null}
+      <Modal visible={!!viewed} transparent animationType="fade" onRequestClose={() => setViewing(null)}>
+        <Pressable accessibilityLabel="Close photo" onPress={() => setViewing(null)} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', padding: space(4) }}>
+          {viewed ? <Image source={{ uri: viewed.uri }} resizeMode="contain" style={{ width: '100%', height: '85%' }} /> : null}
+          <Text style={{ color: '#fff', textAlign: 'center', marginTop: space(3), fontSize: font.body }}>Tap to close</Text>
+        </Pressable>
+      </Modal>
+    </Card>
   );
 }
 

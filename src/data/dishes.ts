@@ -11,8 +11,15 @@ export type Dish = {
   effort: 1 | 2 | 3;
   onePan: boolean;
   protein: ProteinSource;
+  /** Per serving. Estimates for the demo, not lab values. */
   kcal: number;
+  fatG: number;
+  satFatG: number;
+  carbsG: number;
+  /** Of which sugars. */
+  sugarG: number;
   fibreG: number;
+  saltG: number;
   tags: string[];
   ingredients: string[];
   steps: string[];
@@ -31,7 +38,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'plant',
     kcal: 480,
+    fatG: 16,
+    satFatG: 6,
+    carbsG: 62,
+    sugarG: 11,
     fibreG: 15,
+    saltG: 1.6,
     tags: ['curry', 'vegan'],
     ingredients: ['chickpeas', 'spinach', 'onion', 'garlic', 'tomatoes', 'curry_paste', 'coconut_milk', 'brown_rice'],
     steps: [
@@ -53,7 +65,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'plant',
     kcal: 450,
+    fatG: 18,
+    satFatG: 3,
+    carbsG: 45,
+    sugarG: 7,
     fibreG: 10,
+    saltG: 1.9,
     tags: ['stir-fry', 'vegan'],
     ingredients: ['tofu', 'broccoli', 'peppers', 'mushrooms', 'garlic', 'soy_sauce', 'soba', 'pumpkin_seeds'],
     steps: [
@@ -75,7 +92,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'plant',
     kcal: 390,
+    fatG: 9,
+    satFatG: 1.5,
+    carbsG: 52,
+    sugarG: 10,
     fibreG: 14,
+    saltG: 1.2,
     tags: ['soup', 'vegan', 'batch'],
     ingredients: ['lentils', 'onion', 'garlic', 'tomatoes', 'spices', 'kale', 'pumpkin_seeds'],
     steps: [
@@ -97,7 +119,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'fish',
     kcal: 520,
+    fatG: 26,
+    satFatG: 4.5,
+    carbsG: 32,
+    sugarG: 6,
     fibreG: 9,
+    saltG: 0.5,
     tags: ['traybake', 'fish'],
     ingredients: ['salmon', 'broccoli', 'cherry_tomatoes', 'lemon', 'olive_oil', 'quinoa'],
     steps: [
@@ -118,7 +145,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'poultry',
     kcal: 510,
+    fatG: 14,
+    satFatG: 3.5,
+    carbsG: 45,
+    sugarG: 12,
     fibreG: 16,
+    saltG: 1.3,
     tags: ['chilli', 'batch'],
     ingredients: ['turkey_mince', 'black_beans', 'onion', 'peppers', 'tomatoes', 'spices', 'mushrooms'],
     steps: [
@@ -139,7 +171,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'plant',
     kcal: 410,
+    fatG: 27,
+    satFatG: 9,
+    carbsG: 12,
+    sugarG: 7,
     fibreG: 6,
+    saltG: 1.8,
     tags: ['eggs', 'vegetarian'],
     ingredients: ['eggs', 'spinach', 'mushrooms', 'onion', 'feta', 'cherry_tomatoes'],
     steps: [
@@ -160,7 +197,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'poultry',
     kcal: 530,
+    fatG: 14,
+    satFatG: 4,
+    carbsG: 56,
+    sugarG: 9,
     fibreG: 10,
+    saltG: 1.9,
     tags: ['wraps'],
     ingredients: ['chicken', 'peppers', 'onion', 'spices', 'wholewheat_wrap', 'greek_yogurt', 'cabbage'],
     steps: [
@@ -181,7 +223,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'plant',
     kcal: 460,
+    fatG: 14,
+    satFatG: 2,
+    carbsG: 60,
+    sugarG: 6,
     fibreG: 17,
+    saltG: 0.9,
     tags: ['bowl', 'vegan', 'no-cook'],
     ingredients: ['black_beans', 'quinoa', 'cherry_tomatoes', 'cucumber', 'spinach', 'lemon', 'olive_oil', 'pumpkin_seeds'],
     steps: [
@@ -202,7 +249,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'plant',
     kcal: 430,
+    fatG: 12,
+    satFatG: 5,
+    carbsG: 55,
+    sugarG: 9,
     fibreG: 15,
+    saltG: 1.1,
     tags: ['curry', 'vegan', 'batch'],
     ingredients: ['lentils', 'cauliflower', 'onion', 'garlic', 'curry_paste', 'spinach', 'coconut_milk'],
     steps: [
@@ -223,7 +275,12 @@ export const DISHES: Dish[] = [
     onePan: false,
     protein: 'plant',
     kcal: 440,
+    fatG: 13,
+    satFatG: 2,
+    carbsG: 55,
+    sugarG: 6,
     fibreG: 11,
+    saltG: 1.7,
     tags: ['noodles', 'vegan'],
     ingredients: ['soba', 'edamame', 'kale', 'garlic', 'soy_sauce', 'pumpkin_seeds'],
     steps: [
@@ -244,7 +301,12 @@ export const DISHES: Dish[] = [
     onePan: false,
     protein: 'plant',
     kcal: 470,
+    fatG: 12,
+    satFatG: 4,
+    carbsG: 70,
+    sugarG: 16,
     fibreG: 16,
+    saltG: 1.0,
     tags: ['vegetarian'],
     ingredients: ['sweet_potato', 'black_beans', 'greek_yogurt', 'spinach', 'spices'],
     steps: [
@@ -266,7 +328,12 @@ export const DISHES: Dish[] = [
     onePan: false,
     protein: 'plant',
     kcal: 560,
+    fatG: 24,
+    satFatG: 5,
+    carbsG: 62,
+    sugarG: 10,
     fibreG: 8,
+    saltG: 2.0,
     tags: ['noodles', 'vegan'],
     ingredients: ['soba', 'peanut_butter', 'broccoli', 'soy_sauce', 'garlic'],
     steps: ['Cook noodles and broccoli.', 'Whisk peanut butter, soy and garlic.', 'Toss together.'],
@@ -282,7 +349,12 @@ export const DISHES: Dish[] = [
     onePan: false,
     protein: 'red_meat',
     kcal: 680,
+    fatG: 28,
+    satFatG: 11,
+    carbsG: 70,
+    sugarG: 14,
     fibreG: 6,
+    saltG: 1.6,
     tags: ['pasta'],
     ingredients: ['beef_mince', 'onion', 'tomatoes', 'garlic', 'mushrooms'],
     steps: ['Brown the mince.', 'Add veg and tomatoes.', 'Simmer 30 minutes.'],
@@ -298,7 +370,12 @@ export const DISHES: Dish[] = [
     onePan: true,
     protein: 'shellfish',
     kcal: 420,
+    fatG: 10,
+    satFatG: 1.5,
+    carbsG: 50,
+    sugarG: 8,
     fibreG: 7,
+    saltG: 2.2,
     tags: ['stir-fry'],
     ingredients: ['prawns', 'broccoli', 'peppers', 'garlic', 'soy_sauce', 'brown_rice'],
     steps: ['Fry prawns and garlic.', 'Add veg.', 'Serve with rice.'],

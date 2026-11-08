@@ -12,6 +12,7 @@ import { Profile } from '../data/profile';
 import { useNav } from '../nav';
 import { Week, useStore } from '../state/store';
 import { Basil, Button, Card, Chip, H2, P, Row, Screen, TopBar } from '../ui/components';
+import { KcalText, NutritionFacts } from '../ui/Nutrition';
 import { colors, font, space } from '../ui/theme';
 
 export function requestFrom(week: Week, profile: Profile, history: Record<string, DishFeedback[]>, learned?: Learned): PlanRequest {
@@ -135,7 +136,7 @@ export function Plan() {
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: font.large, fontWeight: '700', color: colors.ink }}>{d.name}</Text>
                 <Text style={{ color: colors.inkSoft, fontSize: font.small }}>
-                  ⏱ {d.minutes} min · ✓ {m.have.length} at home · 🛒 {m.missing.length} to buy
+                  ⏱ {d.minutes} min · <KcalText dish={d} /> · ✓ {m.have.length} at home · 🛒 {m.missing.length} to buy
                 </Text>
               </View>
               <Text style={{ color: colors.inkSoft, fontSize: 18 }}>{expanded ? '▴' : '▾'}</Text>
@@ -149,6 +150,10 @@ export function Plan() {
                       <Chip key={r} label={r} />
                     ))}
                   </Row>
+                </View>
+                <View>
+                  <Text style={styles.label}>Nutrition</Text>
+                  <NutritionFacts dish={d} profile={profile} />
                 </View>
                 {m.notes.map((n) => (
                   <Card key={n} tone="peach">
