@@ -10,6 +10,7 @@ import { useNav } from '../nav';
 import { useStore } from '../state/store';
 import { Basil, Button, Card, H1, H2, P, Plate, ProgressBar, Row, Screen, TopBar } from '../ui/components';
 import { colors, font, radius, space } from '../ui/theme';
+import { NutritionFacts } from '../ui/Nutrition';
 
 export function Cook({ index }: { index: number }) {
   const { state, logEvent } = useStore();
@@ -66,6 +67,10 @@ export function Cook({ index }: { index: number }) {
             {meal.notes.map((n) => (
               <P key={n}>💡 {n}</P>
             ))}
+          </Card>
+          <Card>
+            <H2>Nutrition</H2>
+            <NutritionFacts dish={d} profile={state.profile!} />
           </Card>
           <Card>
             <H2>Get these out</H2>

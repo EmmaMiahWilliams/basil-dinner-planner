@@ -13,6 +13,7 @@ import {
   NEED_OPTIONS,
   PREFERRED_OPTIONS,
   Profile,
+  SEX_OPTIONS,
 } from '../data/profile';
 import { TriageStep, useNav } from '../nav';
 import { useStore } from '../state/store';
@@ -30,6 +31,7 @@ const BLANK: Profile = {
   name: '',
   needs: [],
   calorieTarget: null,
+  sex: null,
   allergens: [],
   avoid: [],
   preferred: [],
@@ -77,7 +79,7 @@ function stepContent(key: TriageStep, p: Profile, set: (patch: Partial<Profile>)
     case 'needs':
       return {
         say: 'Which of these matter for how you manage your diabetes?',
-        hint: 'Pick any that your care team has suggested. I use them to choose dinners, not to give medical advice.',
+        hint: 'Pick any that your care team has suggested. I use them to choose dinners and show each meal as a share of your day, not to give medical advice.',
         body: (
           <View style={{ gap: space(4) }}>
             <Row>
@@ -90,6 +92,14 @@ function stepContent(key: TriageStep, p: Profile, set: (patch: Partial<Profile>)
               <Row>
                 {CALORIE_OPTIONS.map((c) => (
                   <Chip key={String(c)} label={c ? `${c.toLocaleString('en-GB')} kcal` : 'Not sure'} selected={p.calorieTarget === c} onPress={() => set({ calorieTarget: c })} />
+                ))}
+              </Row>
+            </View>
+            <View style={{ gap: space(2) }}>
+              <Text style={labelStyle}>Sex, for daily nutrition amounts</Text>
+              <Row>
+                {SEX_OPTIONS.map((o) => (
+                  <Chip key={String(o.value)} label={o.label} selected={p.sex === o.value} onPress={() => set({ sex: o.value })} />
                 ))}
               </Row>
             </View>

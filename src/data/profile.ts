@@ -8,6 +8,8 @@ export type Profile = {
   needs: string[];
   /** Daily calorie target from the user's care team, if they have one. */
   calorieTarget: number | null;
+  /** Used for daily nutrition amounts when there is no calorie target. */
+  sex: 'female' | 'male' | null;
   allergens: string[];
   avoid: string[];
   preferred: string[];
@@ -25,6 +27,11 @@ export const AVOID_OPTIONS = ['mushrooms', 'kale', 'feta', 'coconut_milk', 'tofu
 export const PREFERRED_OPTIONS = ['curry', 'stir-fry', 'soup', 'bowl', 'traybake', 'wraps', 'noodles', 'chilli'];
 export const NEED_OPTIONS = ['Lower simple carbs', 'Lower saturated fat', 'Higher fibre', 'Lower salt'];
 export const CALORIE_OPTIONS: (number | null)[] = [null, 1500, 1800, 2000, 2200];
+export const SEX_OPTIONS: { value: Profile['sex']; label: string }[] = [
+  { value: 'female', label: 'Female' },
+  { value: 'male', label: 'Male' },
+  { value: null, label: 'Prefer not to say' },
+];
 export const GOAL_OPTIONS = ['Cook at home more', 'Eat more plants', 'Waste less food', 'Spend less on takeaways', 'Feel less overwhelmed'];
 
 export const DIET_LABEL: Record<Profile['diet'], string> = {
@@ -38,6 +45,7 @@ export const DEMO_PROFILE: Profile = {
   diet: 'plant-forward',
   needs: ['Lower simple carbs', 'Lower saturated fat', 'Higher fibre'],
   calorieTarget: 1800,
+  sex: 'female',
   allergens: ['peanut', 'shellfish'],
   avoid: ['sweet_potato'],
   preferred: ['curry', 'stir-fry', 'soup'],
@@ -49,5 +57,5 @@ export const DEMO_PROFILE: Profile = {
 
 /** Profiles saved before the triage existed lack the newer fields. */
 export function withDefaults(p: Partial<Profile> & { name: string }): Profile {
-  return { ...DEMO_PROFILE, needs: [], calorieTarget: null, allergens: [], avoid: [], preferred: [], goals: [], ...p };
+  return { ...DEMO_PROFILE, needs: [], calorieTarget: null, sex: null, allergens: [], avoid: [], preferred: [], goals: [], ...p };
 }
