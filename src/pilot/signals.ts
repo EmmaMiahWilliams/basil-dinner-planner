@@ -19,6 +19,8 @@ export type PilotEvent = { at: string } & (
   | { type: 'feedback_sent' }
   | { type: 'reset' }
   | { type: 'consent_given'; version: number }
+  | { type: 'subscription_started'; plan: string }
+  | { type: 'subscription_cancelled'; plan: string }
 );
 
 type Dist<T, K> = T extends unknown ? Omit<T, K & keyof T> : never;

@@ -14,6 +14,7 @@ import { Home } from './src/screens/Home';
 import { Plan } from './src/screens/Plan';
 import { Progress } from './src/screens/Progress';
 import { Store } from './src/screens/Store';
+import { Subscription } from './src/screens/Subscription';
 import { Triage, TriageEdit } from './src/screens/Triage';
 import { AuthProvider, useAuth } from './src/pilot/backend';
 import { PilotSync } from './src/pilot/PilotSync';
@@ -88,6 +89,8 @@ function Router() {
       return <Feedback after={route.after} />;
     case 'consent':
       return <Consent mode="view" />;
+    case 'subscription':
+      return <Subscription />;
   }
   // Every other screen needs a week in progress.
   if (!state.week) return <Home />;

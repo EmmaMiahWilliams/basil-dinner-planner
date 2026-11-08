@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { DishFeedback, Energy, Learned, NO_LEARNING, PlannedMeal } from '../agent/planner';
 import { StoreCart } from '../agent/retailer';
+import { Subscription } from '../data/plans';
 import { Profile, withDefaults } from '../data/profile';
 import { FeedbackResponse, PilotEvent, PilotEventInput, newParticipantId } from '../pilot/signals';
 
@@ -51,9 +52,11 @@ export type AppState = {
   myPantry: string[];
   events: PilotEvent[];
   feedback: FeedbackResponse[];
+  /** Basil Plus demo subscription. Null until a trial is started. */
+  subscription: Subscription | null;
 };
 
-const EMPTY: AppState = { profile: null, week: null, history: {}, pastWeeks: [], learned: NO_LEARNING, participantId: '', consent: null, myPantry: [], events: [], feedback: [] };
+const EMPTY: AppState = { profile: null, week: null, history: {}, pastWeeks: [], learned: NO_LEARNING, participantId: '', consent: null, myPantry: [], events: [], feedback: [], subscription: null };
 /** Cap so a long pilot can't grow storage without bound. */
 const MAX_EVENTS = 2000;
 const stamp = (e: PilotEventInput): PilotEvent => ({ ...e, at: new Date().toISOString() }) as PilotEvent;
@@ -67,6 +70,7 @@ type Ctx = {
   setWeek: (w: Week | null) => void;
   setLearned: (l: Learned) => void;
   setMyPantry: (items: string[]) => void;
+  setSubscription: (sub: Subscription | null) => void;
   updateWeek: (fn: (w: Week) => Week) => void;
   recordFeedback: (dishId: string, fb: DishFeedback) => void;
   finishWeek: () => void;
@@ -111,6 +115,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setWeek: (week) => setState((s) => ({ ...s, week })),
       setLearned: (learned) => setState((s) => ({ ...s, learned })),
       setMyPantry: (myPantry) => setState((s) => ({ ...s, myPantry })),
+      setSubscription: (subscription) => setState((s) => ({ ...s, subscription })),
       updateWeek: (fn) => setState((s) => (s.week ? { ...s, week: fn(s.week) } : s)),
       recordFeedback: (dishId, fb) =>
         setState((s) => ({ ...s, history: { ...s.history, [dishId]: [...(s.history[dishId] ?? []), fb] } })),
@@ -129,7 +134,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         }),
       // Starting over clears the plan and profile but keeps the pilot record, so the PM still sees it.
       reset: () =>
-        setState((s) => withEvent({ ...EMPTY, participantId: s.participantId, consent: s.consent, events: s.events, feedback: s.feedback }, { type: 'reset' })),
+        setState((s) => withEvent({ ...EMPTY, participantId: s.participantId, consent: s.consent, events: s.events, feedback: s.feedback, subscription: s.subscription }, { type: 'reset' })),
       logEvent: (e) => setState((s) => withEvent(s, e)),
       giveConsent: (version) => setState((s) => withEvent({ ...s, consent: { version, at: new Date().toISOString() } }, { type: 'consent_given', version })),
       // Leaving the pilot wipes everything on this device, including the pilot record, and issues a new code.

@@ -7,6 +7,7 @@ import { useStore } from '../state/store';
 import { FeedbackModal } from './Cook';
 import { totals } from '../agent/retailer';
 import { RETAILER } from '../data/store';
+import { INTRO_PRICE, TRIAL_DAYS, usd } from '../data/plans';
 import { Basil, Button, Card, H1, H2, P, ProgressBar, Row, Screen } from '../ui/components';
 import { colors, font, space } from '../ui/theme';
 
@@ -57,6 +58,8 @@ export function Home() {
           </Row>
         </Card>
       ) : null}
+
+      <PlusCard />
 
       <Card tone="sky">
         <P>💧 Keep a glass of water or green tea nearby today.</P>
@@ -179,5 +182,25 @@ function ThisWeek() {
       ) : null}
       {askIndex !== null ? <FeedbackModal key={askIndex} index={askIndex} visible onClose={() => setAskIndex(null)} onDone={() => {}} /> : null}
     </>
+  );
+}
+
+/** Entry to the Basil Plus demo paywall, or a short status once a trial is running. */
+function PlusCard() {
+  const { state } = useStore();
+  const nav = useNav();
+  const active = !!state.subscription && !state.subscription.cancelled;
+  return (
+    <Card tone="peach">
+      <Row style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+        <View style={{ flex: 1 }}>
+          <H2>{active ? '🌿 Basil Plus trial active' : '🌿 Try Basil Plus'}</H2>
+          <P soft>{active ? 'See your plan or cancel' : `${TRIAL_DAYS} days free, then ${usd(INTRO_PRICE)}/month to start`}</P>
+        </View>
+        <Pressable accessibilityRole="button" onPress={() => nav.go({ name: 'subscription' })} hitSlop={8}>
+          <Text style={{ color: colors.sage, fontWeight: '700', fontSize: font.body }}>{active ? 'Manage' : 'See plans'}</Text>
+        </Pressable>
+      </Row>
+    </Card>
   );
 }

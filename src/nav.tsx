@@ -20,7 +20,8 @@ export type Route =
   | { name: 'progress' }
   | { name: 'evals' }
   | { name: 'feedback'; after: string }
-  | { name: 'consent' };
+  | { name: 'consent' }
+  | { name: 'subscription' };
 
 export type TriageStep = 'name' | 'diet' | 'needs' | 'allergens' | 'avoid' | 'preferred' | 'timing' | 'activity' | 'goals';
 
