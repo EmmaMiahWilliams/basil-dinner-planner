@@ -19,7 +19,7 @@ function rows(p: Profile): { key: TriageStep; label: string; value: string; dang
     {
       key: 'needs',
       label: 'Diabetes-friendly aims',
-      value: `${list(p.needs, 'None picked')}${p.calorieTarget ? ` · ${p.calorieTarget.toLocaleString('en-GB')} kcal a day` : ''}`,
+      value: `${list(p.needs, 'None picked')}${p.calorieTarget ? ` · ${p.calorieTarget.toLocaleString('en-GB')} kcal a day` : ''}${p.sex ? ` · ${p.sex === 'female' ? 'Female' : 'Male'}` : ''}`,
     },
     { key: 'allergens', label: 'Allergies (never included)', value: list(p.allergens, 'None'), danger: p.allergens.length > 0 },
     { key: 'avoid', label: 'Rather not eat', value: list(p.avoid.map((id) => INGREDIENTS[id]?.name ?? id), 'Nothing') },
