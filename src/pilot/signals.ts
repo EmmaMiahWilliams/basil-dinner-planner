@@ -9,7 +9,13 @@ export type PilotEvent = { at: string } & (
   | { type: 'plan_approved'; meals: number }
   | { type: 'allergen_alert'; where: 'plan_flagged' | 'cart' | 'store_substitute'; items: string[] }
   | { type: 'cart_approved'; items: number }
-  | { type: 'checkout_reached' }
+  /** Basil stopped at checkout. retailer is 'target' for the Target hand-off, absent for the demo store. */
+  | { type: 'checkout_reached'; retailer?: 'target' }
+  /** Own fridge/cupboard photos. Only counts are recorded: photos never leave the device. */
+  | { type: 'pantry_photo'; action: 'added' | 'removed' | 'discarded'; count: number; reason?: string }
+  /** Target hand-off: the participant opened a product search or ticked an item as added in their own Target cart. */
+  | { type: 'target_item'; action: 'opened' | 'added' | 'unticked'; ingredientId: string }
+  | { type: 'target_account'; has: boolean }
   | { type: 'video_opened'; dishId: string }
   /** In-app video: how much was watched before the participant moved on. */
   | { type: 'video_watched'; dishId: string; watchedSeconds: number; durationSeconds: number; completed: boolean }

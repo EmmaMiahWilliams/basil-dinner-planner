@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ReactNode, createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { DishFeedback, Energy, Learned, NO_LEARNING, PlannedMeal } from '../agent/planner';
 import { StoreCart } from '../agent/retailer';
+import { TargetList } from '../agent/target';
 import { Profile, withDefaults } from '../data/profile';
 import { FeedbackResponse, PilotEvent, PilotEventInput, newParticipantId } from '../pilot/signals';
 
@@ -26,6 +27,11 @@ export type Week = {
   /** The draft cart as sent to the demo store, and the chosen delivery slot. */
   storeCart?: StoreCart;
   deliverySlot?: string;
+  /** Where the approved cart went: the demo store (default) or a hand-off to the shopper's own Target account. */
+  retailer?: 'demo' | 'target';
+  /** Target hand-off list, and the items the shopper says they added to their own Target cart. */
+  targetList?: TargetList;
+  targetAdded?: string[];
   /** Per planned meal: did you cook it? */
   cooked: (boolean | null)[];
   /** Per planned meal: did it keep you within 70–140 mg/dL? */
@@ -51,9 +57,11 @@ export type AppState = {
   myPantry: string[];
   events: PilotEvent[];
   feedback: FeedbackResponse[];
+  /** Whether the participant said they have a Target.com account. Null until asked. Basil never signs in to it. */
+  targetAccount: boolean | null;
 };
 
-const EMPTY: AppState = { profile: null, week: null, history: {}, pastWeeks: [], learned: NO_LEARNING, participantId: '', consent: null, myPantry: [], events: [], feedback: [] };
+const EMPTY: AppState = { profile: null, week: null, history: {}, pastWeeks: [], learned: NO_LEARNING, participantId: '', consent: null, myPantry: [], events: [], feedback: [], targetAccount: null };
 /** Cap so a long pilot can't grow storage without bound. */
 const MAX_EVENTS = 2000;
 const stamp = (e: PilotEventInput): PilotEvent => ({ ...e, at: new Date().toISOString() }) as PilotEvent;
@@ -67,6 +75,7 @@ type Ctx = {
   setWeek: (w: Week | null) => void;
   setLearned: (l: Learned) => void;
   setMyPantry: (items: string[]) => void;
+  setTargetAccount: (has: boolean) => void;
   updateWeek: (fn: (w: Week) => Week) => void;
   recordFeedback: (dishId: string, fb: DishFeedback) => void;
   finishWeek: () => void;
@@ -111,6 +120,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setWeek: (week) => setState((s) => ({ ...s, week })),
       setLearned: (learned) => setState((s) => ({ ...s, learned })),
       setMyPantry: (myPantry) => setState((s) => ({ ...s, myPantry })),
+      setTargetAccount: (has) => setState((s) => withEvent({ ...s, targetAccount: has }, { type: 'target_account', has })),
       updateWeek: (fn) => setState((s) => (s.week ? { ...s, week: fn(s.week) } : s)),
       recordFeedback: (dishId, fb) =>
         setState((s) => ({ ...s, history: { ...s.history, [dishId]: [...(s.history[dishId] ?? []), fb] } })),

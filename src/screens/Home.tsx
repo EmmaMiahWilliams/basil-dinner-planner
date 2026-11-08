@@ -7,6 +7,7 @@ import { useStore } from '../state/store';
 import { FeedbackModal } from './Cook';
 import { totals } from '../agent/retailer';
 import { RETAILER } from '../data/store';
+import { TARGET } from '../data/target';
 import { Basil, Button, Card, H1, H2, P, ProgressBar, Row, Screen } from '../ui/components';
 import { colors, font, space } from '../ui/theme';
 
@@ -52,6 +53,19 @@ export function Home() {
               {RETAILER.emoji} {RETAILER.name} cart: {totals(week.storeCart).items} items{week.deliverySlot ? ` · ${week.deliverySlot}` : ''}
             </P>
             <Pressable accessibilityRole="button" onPress={() => nav.go({ name: 'store', stage: 'store' })} hitSlop={8}>
+              <Text style={{ color: colors.sage, fontWeight: '700', fontSize: font.body }}>Open</Text>
+            </Pressable>
+          </Row>
+        </Card>
+      ) : null}
+
+      {week?.targetList ? (
+        <Card>
+          <Row style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+            <P>
+              {TARGET.emoji} Target list: {(week.targetAdded ?? []).length} of {week.targetList.lines.length} added
+            </P>
+            <Pressable accessibilityRole="button" onPress={() => nav.go({ name: 'target', stage: 'list' })} hitSlop={8}>
               <Text style={{ color: colors.sage, fontWeight: '700', fontSize: font.body }}>Open</Text>
             </Pressable>
           </Row>

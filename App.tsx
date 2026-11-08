@@ -14,10 +14,12 @@ import { Home } from './src/screens/Home';
 import { Plan } from './src/screens/Plan';
 import { Progress } from './src/screens/Progress';
 import { Store } from './src/screens/Store';
+import { Target } from './src/screens/Target';
 import { Triage, TriageEdit } from './src/screens/Triage';
 import { AuthProvider, useAuth } from './src/pilot/backend';
 import { PilotSync } from './src/pilot/PilotSync';
 import { SignIn } from './src/screens/SignIn';
+import { PhotosProvider } from './src/state/photos';
 import { StoreProvider, useStore } from './src/state/store';
 import { colors } from './src/ui/theme';
 
@@ -26,9 +28,11 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <StoreProvider>
-          <StatusBar style="dark" />
-          <PilotSync />
-          <Root />
+          <PhotosProvider>
+            <StatusBar style="dark" />
+            <PilotSync />
+            <Root />
+          </PhotosProvider>
         </StoreProvider>
       </AuthProvider>
     </SafeAreaProvider>
@@ -98,6 +102,8 @@ function Router() {
       return <Cart />;
     case 'store':
       return <Store initial={route.stage} />;
+    case 'target':
+      return <Target initial={route.stage} />;
     case 'cook':
       return <Cook index={route.index} />;
     case 'progress':

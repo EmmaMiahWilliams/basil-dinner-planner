@@ -27,6 +27,16 @@
     },
     "experiments": {
       "baseUrl": "/basil-dinner-planner"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Basil uses your photos only to help you tick what's in your fridge and cupboard. They stay on this device and are deleted at the end of the week.",
+          "cameraPermission": "Basil uses the camera to take photos of your fridge and cupboard. They stay on this device and are deleted at the end of the week.",
+          "microphonePermission": false
+        }
+      ]
+    ]
   }
 }
