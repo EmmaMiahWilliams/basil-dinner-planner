@@ -27,6 +27,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run evals
       - run: npm run pilot:check
+      - run: npm run features:check
       - run: npx expo export --platform web
         env:
           # Pilot sign-in and upload switch on when these repository variables are set
