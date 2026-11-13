@@ -57,6 +57,8 @@ export const TARGET_PRODUCTS: Record<string, TargetProduct> = {
   courgette: { search: 'zucchini squash', estimateUsd: 1.49 },
   tomatoes: { search: 'Good & Gather diced tomatoes no salt added 14.5 oz', estimateUsd: 0.99 },
   cherry_tomatoes: { search: 'cherry tomatoes 10 oz', estimateUsd: 3.29 },
+  carrot: { search: 'carrots 2 lb bag', estimateUsd: 1.49 },
+  celery: { search: 'celery hearts', estimateUsd: 2.49 },
   cucumber: { search: 'cucumber', estimateUsd: 0.79 },
   sweet_potato: { search: 'sweet potatoes 3 lb', estimateUsd: 3.99 },
   quinoa: { search: 'Good & Gather organic quinoa', estimateUsd: 4.49 },
@@ -66,6 +68,7 @@ export const TARGET_PRODUCTS: Record<string, TargetProduct> = {
   peanut_butter: { search: 'Good & Gather creamy peanut butter 16 oz', estimateUsd: 2.29 },
   walnuts: { search: 'Good & Gather chopped walnuts', estimateUsd: 5.49 },
   pumpkin_seeds: { search: 'pepitas pumpkin seeds', estimateUsd: 4.29 },
+  sesame_seeds: { search: 'toasted sesame seeds', estimateUsd: 3.49 },
   chia: { search: 'Good & Gather chia seeds', estimateUsd: 4.49 },
   berries: { search: 'Good & Gather frozen mixed berries', estimateUsd: 4.99 },
   dark_choc: { search: '85% dark chocolate bar', estimateUsd: 3.49 },
@@ -74,6 +77,10 @@ export const TARGET_PRODUCTS: Record<string, TargetProduct> = {
   soy_sauce: { search: 'reduced sodium soy sauce', estimateUsd: 2.99 },
   coconut_milk: { search: 'Good & Gather light coconut milk 13.5 oz', estimateUsd: 2.29 },
   lemon: { search: 'lemons', estimateUsd: 0.79 },
+  black_vinegar: { search: 'Chinkiang black vinegar', estimateUsd: 3.99 },
+  sesame_oil: { search: 'toasted sesame oil', estimateUsd: 4.49 },
+  veg_stock: { search: 'low sodium vegetable broth 32 oz', estimateUsd: 2.49 },
+  herbs: { search: 'dried rosemary and bay leaves', estimateUsd: 5.98 },
   spices: { search: 'ground cumin smoked paprika', estimateUsd: 5.98 },
 };
 

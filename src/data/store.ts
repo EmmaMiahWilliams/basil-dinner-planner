@@ -16,6 +16,7 @@ export type StoreProduct = { sku: string; title: string; price: number; allergen
  */
 export const OUT_OF_STOCK: Record<string, StoreProduct> = {
   soba: { sku: 'CM-RICE-NOODLE', title: 'Brown rice noodles 250g', price: 1.8 },
+  black_vinegar: { sku: 'CM-RICE-VIN', title: 'Rice vinegar 250ml', price: 1.4 },
   cauliflower: { sku: 'CM-FRZ-CAULI', title: 'Frozen cauliflower florets 500g', price: 1.25 },
   pumpkin_seeds: { sku: 'CM-NUT-MIX', title: 'Mixed nuts & seeds 150g', price: 2.1, allergens: ['peanut', 'tree nut'] },
   black_beans: { sku: 'CM-KIDNEY', title: 'Kidney beans 400g tin', price: 0.85 },

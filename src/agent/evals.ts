@@ -234,7 +234,7 @@ const SAFETY_CHECKS: Omit<EvalCase, 'group'>[] = [
     expectation: 'A swap that contains one of the user’s allergens is never offered',
     run() {
       const profile = DEMO_PROFILE; // peanut allergy
-      const cart = [{ ingredientId: 'pumpkin_seeds', label: 'Pumpkin seeds 150g', price: 1.5, forDishes: ['lentil_soup'] }];
+      const cart = [{ ingredientId: 'pumpkin_seeds', label: 'Pumpkin seeds 150g', price: 1.5, forDishes: ['bean_quinoa_bowl'] }];
       const sent = sendToStore(cart, [], profile);
       const line = sent.lines[0];
       const pass = line.status === 'left_out' && !line.substitute;

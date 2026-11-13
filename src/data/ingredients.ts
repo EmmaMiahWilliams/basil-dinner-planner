@@ -51,6 +51,8 @@ const list: Ingredient[] = [
   { id: 'courgette', name: 'Courgette', emoji: '🥒', group: 'veg', product: { label: 'Courgettes x2', price: 1.0 } },
   { id: 'tomatoes', name: 'Chopped tomatoes (tin)', emoji: '🥫', group: 'veg', product: { label: 'Chopped tomatoes 400g', price: 0.6 } },
   { id: 'cherry_tomatoes', name: 'Cherry tomatoes', emoji: '🍅', group: 'veg', product: { label: 'Cherry tomatoes 250g', price: 1.2 } },
+  { id: 'carrot', name: 'Carrots', emoji: '🥕', group: 'veg', product: { label: 'Carrots 1kg', price: 0.6 } },
+  { id: 'celery', name: 'Celery', emoji: '🥬', group: 'veg', product: { label: 'Celery', price: 0.75 }, allergens: ['celery'] },
   { id: 'cucumber', name: 'Cucumber', emoji: '🥒', group: 'veg', product: { label: 'Cucumber', price: 0.7 } },
   { id: 'sweet_potato', name: 'Sweet potato', emoji: '🍠', group: 'veg', product: { label: 'Sweet potatoes 1kg', price: 1.5 } },
   { id: 'quinoa', name: 'Quinoa', emoji: '🌾', group: 'grain', product: { label: 'Quinoa 300g', price: 2.0 } },
@@ -60,6 +62,7 @@ const list: Ingredient[] = [
   { id: 'peanut_butter', name: 'Peanut butter', emoji: '🥜', group: 'nutsSeeds', product: { label: 'Peanut butter 340g', price: 2.0 }, allergens: ['peanut'] },
   { id: 'walnuts', name: 'Walnuts', emoji: '🌰', group: 'nutsSeeds', product: { label: 'Walnuts 100g', price: 1.9 }, allergens: ['tree nut'] },
   { id: 'pumpkin_seeds', name: 'Pumpkin seeds', emoji: '🌻', group: 'nutsSeeds', product: { label: 'Pumpkin seeds 150g', price: 1.5 } },
+  { id: 'sesame_seeds', name: 'Sesame seeds', emoji: '🌱', group: 'nutsSeeds', product: { label: 'Sesame seeds 100g', price: 1.2 }, allergens: ['sesame'] },
   { id: 'chia', name: 'Chia seeds', emoji: '🌱', group: 'nutsSeeds', product: { label: 'Chia seeds 150g', price: 1.8 } },
   { id: 'berries', name: 'Mixed berries (frozen)', emoji: '🫐', group: 'berries', product: { label: 'Frozen mixed berries 500g', price: 2.0 } },
   { id: 'dark_choc', name: 'Dark chocolate 85%', emoji: '🍫', group: 'pantry', product: { label: 'Dark chocolate 85% 100g', price: 1.7 } },
@@ -68,6 +71,10 @@ const list: Ingredient[] = [
   { id: 'soy_sauce', name: 'Reduced-salt soy sauce', emoji: '🍶', group: 'pantry', product: { label: 'Reduced-salt soy sauce', price: 1.3 }, allergens: ['soy'] },
   { id: 'coconut_milk', name: 'Light coconut milk', emoji: '🥥', group: 'pantry', product: { label: 'Light coconut milk 400ml', price: 1.1 } },
   { id: 'lemon', name: 'Lemon', emoji: '🍋', group: 'pantry', product: { label: 'Lemons x2', price: 0.6 } },
+  { id: 'black_vinegar', name: 'Chinese black vinegar', emoji: '🍶', group: 'pantry', product: { label: 'Chinkiang black vinegar', price: 1.8 }, allergens: ['gluten'] },
+  { id: 'sesame_oil', name: 'Toasted sesame oil', emoji: '🫗', group: 'pantry', product: { label: 'Toasted sesame oil 150ml', price: 2.2 }, allergens: ['sesame'] },
+  { id: 'veg_stock', name: 'Low-salt vegetable stock', emoji: '🥣', group: 'pantry', product: { label: 'Reduced-salt veg stock cubes', price: 1.0 } },
+  { id: 'herbs', name: 'Rosemary & bay leaves', emoji: '🌿', group: 'pantry', product: { label: 'Dried rosemary + bay leaves', price: 1.6 } },
   { id: 'spices', name: 'Cumin & paprika', emoji: '🧂', group: 'pantry', product: { label: 'Cumin + smoked paprika', price: 1.8 } },
 ];
 
