@@ -60,3 +60,8 @@ The id is the part after `v=` in a YouTube link. Before adding a video, watch it
 the same dish with the same ingredients and adds no allergens that Basil's recipe doesn't have. On
 the web app, videos play inside Basil and the pilot report shows where people stopped watching.
 Dishes without a video still open a YouTube search.
+
+## 5. Switch on photo reading (optional)
+
+Follow [`docs/photo-recognition.md`](photo-recognition.md) to let Basil read participants' fridge and
+cupboard photos with Claude. It needs an Anthropic API key, kept as a Supabase secret.

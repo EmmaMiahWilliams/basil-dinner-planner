@@ -7,8 +7,10 @@ import { ENERGY_LABEL, Energy, TraceStep, planWeek } from '../agent/planner';
 import { FoodGroup, INGREDIENTS, ingredient } from '../data/ingredients';
 import { MY_KITCHEN, PANTRY_PHOTOS, inventoryFor } from '../data/pantries';
 import { CheckIn as CheckInData, useNav } from '../nav';
+import { Unavailable, photoReadingPossible, readPantryPhoto } from '../pilot/recognize';
+import { EMPTY_READING, PhotoReading, applyReading, mergeReadings } from '../state/photoReading';
 import { AddResult, usePantryPhotos } from '../state/photos';
-import { MAX_PHOTOS_PER_WEEK, discardBy } from '../state/photoRules';
+import { MAX_PHOTOS_PER_WEEK, PantryPhotoShot, discardBy } from '../state/photoRules';
 import { useStore } from '../state/store';
 import { Basil, Button, Card, Chip, H2, P, Row, Screen, Segmented, TopBar } from '../ui/components';
 import { colors, font, radius, space } from '../ui/theme';
@@ -31,6 +33,11 @@ export function CheckIn() {
   const [maxMinutes, setMaxMinutes] = useState(30);
   const mine = pantryId === MY_KITCHEN;
   const toggleItem = (id: string) => setMyItems((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  const [reading, setReading] = useState<PhotoReading>(EMPTY_READING);
+  const onReading = (r: PhotoReading) => {
+    setReading((cur) => mergeReadings(cur, r));
+    setMyItems((cur) => applyReading(cur, r));
+  };
 
   return (
     <Screen
@@ -62,7 +69,8 @@ export function CheckIn() {
       </Pressable>
       {mine ? (
         <View style={{ gap: space(3) }}>
-          <MyPhotos />
+          <MyPhotos onReading={onReading} />
+          <FromPhotos reading={reading} ticked={myItems} toggle={toggleItem} />
           {SHELVES.map((sh) => (
             <Card key={sh.label}>
               <H2>{sh.label}</H2>
@@ -147,32 +155,89 @@ const PHOTO_MESSAGE: Record<Exclude<AddResult, 'added' | 'cancelled'>, string> =
   failed: 'That photo didn’t save. Try again, or just tick the list.',
 };
 
+const READ_MESSAGE: Record<Unavailable, string> = {
+  local: 'Photo reading isn’t available in this version. Tick what you see below.',
+  not_set_up: 'Photo reading isn’t switched on for the pilot yet. Tick what you see below.',
+  signed_out: 'Sign in to the pilot to let Basil read your photos. For now, tick what you see below.',
+  busy: 'Basil is busy right now. Try “Read my photos” again in a minute, or tick the list.',
+  unreadable: 'I couldn’t read that photo clearly. Try a brighter, closer photo, or tick what you see.',
+  offline: 'No connection, so I couldn’t read the photo. Tick what you see, or try again later.',
+};
+
 /**
- * Up to 5 photos of the participant's own fridge and cupboard, to look at while ticking the list.
- * They stay on this device and are deleted at the end of the weekly planning cycle.
+ * Up to 5 photos of the participant's own fridge and cupboard. They stay on this device and are
+ * deleted at the end of the weekly planning cycle. With photo reading turned on, each one is also sent
+ * once to Claude, and what it sees clearly is ticked on the list below.
  */
-function MyPhotos() {
+function MyPhotos({ onReading }: { onReading: (r: PhotoReading) => void }) {
   const { cycle, left, add, remove } = usePantryPhotos();
-  const [busy, setBusy] = useState(false);
+  const { state, setReadPhotos, logEvent } = useStore();
+  const [busy, setBusy] = useState<null | 'saving' | 'reading'>(null);
   const [note, setNote] = useState<string | null>(null);
   const [viewing, setViewing] = useState<string | null>(null);
+  const [read, setRead] = useState<string[]>([]);
   const by = discardBy(cycle);
-  const take = async (source: 'camera' | 'library') => {
-    setBusy(true);
-    setNote(null);
-    const r = await add(source);
-    setBusy(false);
-    if (r !== 'added' && r !== 'cancelled') setNote(PHOTO_MESSAGE[r]);
+  const reads = photoReadingPossible && state.readPhotos;
+
+  const readAll = async (photos: PantryPhotoShot[]) => {
+    setBusy('reading');
+    let found = 0;
+    for (const p of photos) {
+      const r = await readPantryPhoto(p.uri);
+      logEvent({ type: 'pantry_read', outcome: r.ok ? 'ok' : r.why, sure: r.ok ? r.reading.sure.length : 0, unsure: r.ok ? r.reading.unsure.length : 0 });
+      if (!r.ok) {
+        setNote(READ_MESSAGE[r.why]);
+        break;
+      }
+      setRead((cur) => [...cur, p.id]);
+      onReading(r.reading);
+      found += r.reading.sure.length + r.reading.unsure.length;
+    }
+    setBusy(null);
+    return found;
   };
+
+  const take = async (source: 'camera' | 'library') => {
+    setBusy('saving');
+    setNote(null);
+    const { result, photo } = await add(source);
+    setBusy(null);
+    if (result !== 'added' && result !== 'cancelled') setNote(PHOTO_MESSAGE[result]);
+    if (result === 'added' && photo && reads) {
+      const found = await readAll([photo]);
+      if (found === 0) setNote((n) => n ?? 'I couldn’t spot anything from Basil’s list in that one. Tick what you see, or try another angle.');
+    }
+  };
+  const unread = cycle.photos.filter((p) => !read.includes(p.id));
   const viewed = cycle.photos.find((p) => p.id === viewing);
 
   return (
     <Card>
       <H2>📸 Photos of my fridge and cupboard (optional)</H2>
       <P soft>
-        Snap your shelves, then tick the list below while looking at them. Up to {MAX_PHOTOS_PER_WEEK} a week. They stay on this device and are deleted when this week’s plan ends
+        {reads ? 'Snap your shelves and I’ll tick what I can see. ' : 'Snap your shelves, then tick the list below while looking at them. '}
+        Up to {MAX_PHOTOS_PER_WEEK} a week. They’re kept on this device and deleted when this week’s plan ends
         {by ? ` (by ${by.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'short' })} at the latest)` : ''}.
       </P>
+      {photoReadingPossible ? (
+        <Pressable
+          accessibilityRole="switch"
+          accessibilityState={{ checked: state.readPhotos }}
+          onPress={() => {
+            setNote(null);
+            setReadPhotos(!state.readPhotos);
+          }}
+          style={{ flexDirection: 'row', gap: space(3), alignItems: 'flex-start', padding: space(3), borderRadius: radius.md, borderWidth: 1.5, borderColor: state.readPhotos ? colors.sage : colors.line, backgroundColor: state.readPhotos ? colors.sageSoft : colors.card }}
+        >
+          <Text style={{ fontSize: 20, color: colors.sage, width: 24 }}>{state.readPhotos ? '☑' : '☐'}</Text>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={{ fontWeight: '700', fontSize: font.body, color: colors.ink }}>Let Basil read my photos</Text>
+            <Text style={{ color: colors.inkSoft, fontSize: font.small, lineHeight: 20 }}>
+              Each photo is sent once to Claude, an AI made by Anthropic, to spot food. Basil doesn’t keep a copy anywhere but this device. Keep people and papers out of the shot. You can turn this off any time.
+            </Text>
+          </View>
+        </Pressable>
+      ) : null}
       {cycle.photos.length ? (
         <Row>
           {cycle.photos.map((p) => (
@@ -194,11 +259,21 @@ function MyPhotos() {
         </Row>
       ) : null}
       <Row style={{ flexWrap: 'nowrap' }}>
-        <Button style={{ flex: 1 }} kind="secondary" label={busy ? 'Saving…' : '📷 Camera'} disabled={busy || left === 0} onPress={() => take('camera')} />
-        <Button style={{ flex: 1 }} kind="secondary" label="🖼️ My photos" disabled={busy || left === 0} onPress={() => take('library')} />
+        <Button
+          style={{ flex: 1 }}
+          kind="secondary"
+          label={busy === 'saving' ? 'Saving…' : busy === 'reading' ? 'Reading…' : '📷 Camera'}
+          disabled={!!busy || left === 0}
+          onPress={() => take('camera')}
+        />
+        <Button style={{ flex: 1 }} kind="secondary" label="🖼️ My photos" disabled={!!busy || left === 0} onPress={() => take('library')} />
       </Row>
+      {reads && unread.length && !busy ? (
+        <Button kind="ghost" label={`🔍 Read my ${unread.length === 1 ? 'photo' : `${unread.length} photos`}`} onPress={() => { setNote(null); readAll(unread); }} />
+      ) : null}
       <P soft>
-        {left} of {MAX_PHOTOS_PER_WEEK} photos left this week. Basil doesn’t look at them for you yet: you still tick what you see.
+        {left} of {MAX_PHOTOS_PER_WEEK} photos left this week.
+        {reads ? ' I only tick what I can see clearly, so check the list before planning.' : ' You tick what you see.'}
       </P>
       {note ? <P style={{ color: colors.danger }}>{note}</P> : null}
       <Modal visible={!!viewed} transparent animationType="fade" onRequestClose={() => setViewing(null)}>
@@ -207,6 +282,32 @@ function MyPhotos() {
           <Text style={{ color: '#fff', textAlign: 'center', marginTop: space(3), fontSize: font.body }}>Tap to close</Text>
         </Pressable>
       </Modal>
+    </Card>
+  );
+}
+
+/** What Claude saw: clear items are already ticked; unsure ones are offered for the participant to confirm. */
+function FromPhotos({ reading, ticked, toggle }: { reading: PhotoReading; ticked: string[]; toggle: (id: string) => void }) {
+  if (!reading.sure.length && !reading.unsure.length && !reading.other.length) return null;
+  return (
+    <Card tone="peach">
+      <H2>🔍 From your photos</H2>
+      {reading.sure.length ? (
+        <P>
+          I ticked {reading.sure.length} {reading.sure.length === 1 ? 'thing' : 'things'} I could see clearly: {reading.sure.map((id) => ingredient(id).name).join(', ')}. Untick anything that’s wrong or nearly used up.
+        </P>
+      ) : null}
+      {reading.unsure.length ? (
+        <>
+          <P>I’m not sure about these. Tap the ones you have:</P>
+          <Row>
+            {reading.unsure.map((id) => (
+              <Chip key={id} label={`${ingredient(id).emoji} ${ingredient(id).name}`} selected={ticked.includes(id)} onPress={() => toggle(id)} />
+            ))}
+          </Row>
+        </>
+      ) : null}
+      {reading.other.length ? <P soft>Also spotted (not in Basil’s list yet): {reading.other.join(', ')}.</P> : null}
     </Card>
   );
 }

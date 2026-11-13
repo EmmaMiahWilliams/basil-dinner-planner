@@ -62,9 +62,11 @@ export type AppState = {
   targetAccount: boolean | null;
   /** Basil Plus demo subscription. Null until a trial is started. */
   subscription: Subscription | null;
+  /** The participant agreed to send pantry photos to Claude to read. Off until they turn it on in check-in. */
+  readPhotos: boolean;
 };
 
-const EMPTY: AppState = { profile: null, week: null, history: {}, pastWeeks: [], learned: NO_LEARNING, participantId: '', consent: null, myPantry: [], events: [], feedback: [], targetAccount: null, subscription: null };
+const EMPTY: AppState = { profile: null, week: null, history: {}, pastWeeks: [], learned: NO_LEARNING, participantId: '', consent: null, myPantry: [], events: [], feedback: [], targetAccount: null, subscription: null, readPhotos: false };
 /** Cap so a long pilot can't grow storage without bound. */
 const MAX_EVENTS = 2000;
 const stamp = (e: PilotEventInput): PilotEvent => ({ ...e, at: new Date().toISOString() }) as PilotEvent;
@@ -87,6 +89,7 @@ type Ctx = {
   logEvent: (e: PilotEventInput) => void;
   giveConsent: (version: number) => void;
   withdraw: () => void;
+  setReadPhotos: (on: boolean) => void;
   addFeedback: (f: Omit<FeedbackResponse, 'at'>) => void;
 };
 
@@ -149,6 +152,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       giveConsent: (version) => setState((s) => withEvent({ ...s, consent: { version, at: new Date().toISOString() } }, { type: 'consent_given', version })),
       // Leaving the pilot wipes everything on this device, including the pilot record, and issues a new code.
       withdraw: () => setState({ ...EMPTY, participantId: newParticipantId() }),
+      setReadPhotos: (on) => setState((s) => withEvent({ ...s, readPhotos: on }, { type: 'photo_reading', on })),
       addFeedback: (f) => setState((s) => ({ ...s, feedback: [...s.feedback, { ...f, at: new Date().toISOString() }] })),
     }),
     [state, ready],

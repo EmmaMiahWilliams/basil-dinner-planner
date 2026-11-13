@@ -10,7 +10,7 @@ import { useStore } from '../state/store';
 import { Basil, Button, Card, H1, H2, P, Screen, TopBar } from '../ui/components';
 import { colors, font, radius, space } from '../ui/theme';
 
-export const CONSENT_VERSION = 1;
+export const CONSENT_VERSION = 2;
 
 const AGREE = [
   'I’m taking part in a small, supervised test of Basil, not using a finished product.',
@@ -53,6 +53,8 @@ export function Consent({ mode }: { mode: 'first' | 'view' }) {
         <P>• If you sign in: your email address, so only you can use your account.</P>
         <H2>What we don’t collect</H2>
         <P>Your glucose numbers, health records, payment details or grocery-store password. Your profile and pantry stay on your device.</P>
+        <H2>Fridge and cupboard photos</H2>
+        <P>Photos are optional and kept on your device. Only if you turn on “Let Basil read my photos” in the Saturday check-in, each photo is sent once to Claude, an AI made by Anthropic, to spot the food in it. Basil doesn’t save the photo anywhere else, and the pilot team never sees it, only how many items were spotted. Keep people and papers out of the shot.</P>
       </Card>
 
       <Card>
