@@ -1,7 +1,8 @@
 // The participant's own fridge and cupboard photos for this week's check-in.
 //
-// Photos stay on this device only: they are never uploaded, never put in the pilot export, and are
-// kept apart from the main app state. Up to 5 can be taken per weekly planning cycle, and all of them
+// Photos are kept on this device, never put in the pilot export, and kept apart from the main app state.
+// If the participant turns on photo reading, each photo is also sent once to Basil's recognize-pantry
+// function to be read by Claude (src/pilot/recognize.ts); it isn't stored there. Up to 5 can be taken per weekly planning cycle, and all of them
 // are discarded when the cycle ends (see photoRules.ts).
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { ReactNode, createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import { useStore } from './store';
-import { PhotoCycle, addPhoto, cycleEnded, cycleKey, emptyCycle, photosLeft, removePhoto } from './photoRules';
+import { PantryPhotoShot, PhotoCycle, addPhoto, cycleEnded, cycleKey, emptyCycle, photosLeft, removePhoto } from './photoRules';
 
 const KEY = 'dinner-planner/pantry-photos/v1';
 /** Long edge after resizing: plenty to read labels, small enough (~100–200 KB) to keep 5 on the device. */
@@ -22,7 +23,8 @@ export type AddResult = 'added' | 'limit' | 'cancelled' | 'no_permission' | 'fai
 type Ctx = {
   cycle: PhotoCycle;
   left: number;
-  add: (source: 'camera' | 'library') => Promise<AddResult>;
+  /** Takes or picks a photo. On 'added', also returns the saved photo so it can be read. */
+  add: (source: 'camera' | 'library') => Promise<{ result: AddResult; photo?: PantryPhotoShot }>;
   remove: (id: string) => void;
 };
 
@@ -100,15 +102,15 @@ export function PhotosProvider({ children }: { children: ReactNode }) {
       cycle,
       left: photosLeft(cycle),
       add: async (source) => {
-        if (photosLeft(cycleRef.current) === 0) return 'limit';
+        if (photosLeft(cycleRef.current) === 0) return { result: 'limit' };
         try {
           if (Platform.OS !== 'web') {
             const perm = source === 'camera' ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
-            if (!perm.granted) return 'no_permission';
+            if (!perm.granted) return { result: 'no_permission' };
           }
           const options: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.8, exif: false };
           const picked = source === 'camera' ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
-          if (picked.canceled || !picked.assets[0]) return 'cancelled';
+          if (picked.canceled || !picked.assets[0]) return { result: 'cancelled' };
           const asset = picked.assets[0];
           const landscape = (asset.width ?? 0) > (asset.height ?? 0);
           const ref = await ImageManipulator.manipulate(asset.uri)
@@ -116,15 +118,16 @@ export function PhotosProvider({ children }: { children: ReactNode }) {
             .renderAsync();
           const out = await ref.saveAsync({ compress: 0.6, format: SaveFormat.JPEG, base64: true });
           deleteTemp(asset.uri, out.uri);
-          if (!out.base64) return 'failed';
+          if (!out.base64) return { result: 'failed' };
           const at = new Date().toISOString();
-          const next = addPhoto(cycleRef.current, { id: `ph-${Date.now()}`, uri: `data:image/jpeg;base64,${out.base64}`, at });
-          if (!next) return 'limit';
+          const photo = { id: `ph-${Date.now()}`, uri: `data:image/jpeg;base64,${out.base64}`, at };
+          const next = addPhoto(cycleRef.current, photo);
+          if (!next) return { result: 'limit' };
           setCycle(next);
           logEvent({ type: 'pantry_photo', action: 'added', count: next.photos.length });
-          return 'added';
+          return { result: 'added', photo };
         } catch {
-          return 'failed';
+          return { result: 'failed' };
         }
       },
       remove: (id) => {
