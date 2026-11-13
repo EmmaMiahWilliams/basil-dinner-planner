@@ -9,6 +9,7 @@ import { DISHES } from '../src/data/dishes';
 import { DEMO_PROFILE } from '../src/data/profile';
 import { TARGET_PRODUCTS, targetUrl } from '../src/data/target';
 import { DISH_VIDEOS, linkFor, parseVideoLink, videoFor } from '../src/data/videos';
+import { applyReading, cleanReading, mergeReadings } from '../src/state/photoReading';
 import { MAX_PHOTOS_PER_WEEK, PhotoCycle, addPhoto, cycleEnded, cycleKey, emptyCycle, photosLeft, removePhoto } from '../src/state/photoRules';
 
 const checks: [string, boolean][] = [];
@@ -28,6 +29,17 @@ checks.push(['photos discarded when the week is finished', cycleEnded(c, cycleKe
 checks.push(['photos discarded on start over', cycleEnded(c, cycleKey('P-TEST1', 0, false), new Date('2026-11-08T09:00:00Z'))]);
 checks.push(['photos discarded when leaving the pilot', cycleEnded(c, cycleKey('P-NEW22', 0, false), new Date('2026-11-08T09:00:00Z'))]);
 checks.push(['new cycle starts empty with 5 slots', photosLeft(emptyCycle(key)) === 5]);
+
+// Photo reading (what Claude saw, turned into ticks)
+const ids = Object.keys(INGREDIENTS);
+const r1 = cleanReading({ items: [{ id: 'chickpeas', confidence: 'sure' }, { id: 'eggs', confidence: 'unsure' }, { id: 'unicorn', confidence: 'sure' }, { id: 'chickpeas', confidence: 'unsure' }, 'junk'], other: ['ketchup', ' ketchup ', 3] }, ids);
+checks.push(['unknown ids from Claude are dropped', !r1.sure.includes('unicorn') && !r1.unsure.includes('unicorn')]);
+checks.push(['an item is never both sure and unsure', r1.sure.includes('chickpeas') && !r1.unsure.includes('chickpeas') && r1.unsure.includes('eggs')]);
+checks.push(['"also spotted" is cleaned and de-duplicated', r1.other.length === 1 && r1.other[0] === 'ketchup']);
+checks.push(['a broken reply reads as nothing found', JSON.stringify(cleanReading(null, ids)) === JSON.stringify({ sure: [], unsure: [], other: [] })]);
+checks.push(['only sure items are ticked, nothing is unticked', JSON.stringify(applyReading(['tofu'], r1).sort()) === JSON.stringify(['chickpeas', 'tofu'])]);
+const r2 = mergeReadings(r1, cleanReading({ items: [{ id: 'eggs', confidence: 'sure' }], other: [] }, ids));
+checks.push(['sure in a later photo beats unsure in an earlier one', r2.sure.includes('eggs') && !r2.unsure.includes('eggs')]);
 
 // Target hand-off
 checks.push(['every ingredient has a Target search and USD guide', Object.keys(INGREDIENTS).every((id) => TARGET_PRODUCTS[id]?.search && TARGET_PRODUCTS[id].estimateUsd > 0)]);

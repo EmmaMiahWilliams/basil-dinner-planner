@@ -11,8 +11,12 @@ export type PilotEvent = { at: string } & (
   | { type: 'cart_approved'; items: number }
   /** Basil stopped at checkout. retailer is 'target' for the Target hand-off, absent for the demo store. */
   | { type: 'checkout_reached'; retailer?: 'target' }
-  /** Own fridge/cupboard photos. Only counts are recorded: photos never leave the device. */
+  /** Own fridge/cupboard photos. Only counts are recorded: photos are never in the export. */
   | { type: 'pantry_photo'; action: 'added' | 'removed' | 'discarded'; count: number; reason?: string }
+  /** The participant turned photo reading on or off (photos are sent to Claude only while it is on). */
+  | { type: 'photo_reading'; on: boolean }
+  /** Claude read a pantry photo. Only counts are recorded, never the photo or the item names. */
+  | { type: 'pantry_read'; outcome: 'ok' | 'local' | 'signed_out' | 'not_set_up' | 'busy' | 'unreadable' | 'offline'; sure: number; unsure: number }
   /** Target hand-off: the participant opened a product search or ticked an item as added in their own Target cart. */
   | { type: 'target_item'; action: 'opened' | 'added' | 'unticked'; ingredientId: string }
   | { type: 'target_account'; has: boolean }
