@@ -2,7 +2,7 @@
 // The web build (VideoPlayer.web.tsx) plays it inside Basil instead, so watch-time can be measured.
 
 import { Linking } from 'react-native';
-import { DishVideo } from '../data/videos';
+import { DishVideo, linkFor } from '../data/videos';
 import { Button } from './components';
 
 export type VideoPlayerProps = {
@@ -12,10 +12,7 @@ export type VideoPlayerProps = {
   onWatched: (w: { watchedSeconds: number; durationSeconds: number; completed: boolean }) => void;
 };
 
-export function linkFor(video: DishVideo | null, searchUrl: string): string {
-  if (!video) return searchUrl;
-  return 'youtubeId' in video ? `https://www.youtube.com/watch?v=${video.youtubeId}` : video.mp4Url;
-}
+export { linkFor };
 
 export function VideoPlayer({ video, searchUrl, onOpened }: VideoPlayerProps) {
   return (

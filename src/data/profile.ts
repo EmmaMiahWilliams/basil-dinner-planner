@@ -22,7 +22,7 @@ export type Profile = {
   reviewedAt?: string;
 };
 
-export const ALLERGEN_OPTIONS = ['peanut', 'tree nut', 'milk', 'egg', 'soy', 'gluten', 'fish', 'shellfish'];
+export const ALLERGEN_OPTIONS = ['peanut', 'tree nut', 'milk', 'egg', 'soy', 'gluten', 'fish', 'shellfish', 'sesame', 'celery'];
 export const AVOID_OPTIONS = ['mushrooms', 'kale', 'feta', 'coconut_milk', 'tofu', 'sweet_potato', 'cauliflower', 'lentils', 'salmon', 'eggs'];
 export const PREFERRED_OPTIONS = ['curry', 'stir-fry', 'soup', 'bowl', 'traybake', 'wraps', 'noodles', 'chilli'];
 export const NEED_OPTIONS = ['Lower simple carbs', 'Lower saturated fat', 'Higher fibre', 'Lower salt'];

@@ -1,12 +1,14 @@
 /// <reference types="node" />
-// Self-check for the pantry photo limits and the Target hand-off. Run: npm run features:check
+// Self-check for the pantry photo limits, the Target hand-off and the vetted cooking videos. Run: npm run features:check
 
 import { NO_LEARNING, buildCart, planWeek } from '../src/agent/planner';
 import { buildTargetList, targetTotals } from '../src/agent/target';
 import { INGREDIENTS } from '../src/data/ingredients';
 import { inventoryFor } from '../src/data/pantries';
+import { DISHES } from '../src/data/dishes';
 import { DEMO_PROFILE } from '../src/data/profile';
 import { TARGET_PRODUCTS, targetUrl } from '../src/data/target';
+import { DISH_VIDEOS, linkFor, parseVideoLink, videoFor } from '../src/data/videos';
 import { applyReading, cleanReading, mergeReadings } from '../src/state/photoReading';
 import { MAX_PHOTOS_PER_WEEK, PhotoCycle, addPhoto, cycleEnded, cycleKey, emptyCycle, photosLeft, removePhoto } from '../src/state/photoRules';
 
@@ -56,7 +58,21 @@ const tot = targetTotals(list, [list.lines[0].ingredientId]);
 checks.push(['totals count only what the shopper added', tot.added === 1 && Math.abs(tot.addedUsd - list.lines[0].usd) < 1e-9]);
 checks.push(['the hand-off has no checkout or order state', list.status === 'handed_off' && !('order' in list)]);
 
+// Cooking videos
+const dishIds = new Set(DISHES.map((d) => d.id));
+for (const [id, v] of Object.entries(DISH_VIDEOS)) {
+  checks.push([`video for ${id} belongs to a real dish`, dishIds.has(id)]);
+  checks.push([`video link for ${id} can be read`, videoFor(id) !== null && v.title.trim().length > 0]);
+}
+const yt = (url: string) => { const v = parseVideoLink(url, 't'); return v && 'youtubeId' in v ? `${v.youtubeId}@${v.startSeconds ?? 0}` : null; };
+checks.push(['watch links are read', yt('https://www.youtube.com/watch?v=dQw4w9WgXcQ') === 'dQw4w9WgXcQ@0']);
+checks.push(['short links with a start time are read', yt('https://youtu.be/dQw4w9WgXcQ?si=abc&t=1m30s') === 'dQw4w9WgXcQ@90']);
+checks.push(['Shorts and phone links are read', yt('https://youtube.com/shorts/dQw4w9WgXcQ') === 'dQw4w9WgXcQ@0' && yt('https://m.youtube.com/watch?v=dQw4w9WgXcQ&t=45') === 'dQw4w9WgXcQ@45']);
+checks.push(['non-YouTube and broken links are refused', parseVideoLink('https://vimeo.com/123', 't') === null && parseVideoLink('PASTE LINK HERE', 't') === null && parseVideoLink('https://youtube.com/watch?v=short', 't') === null]);
+checks.push(['dishes without a video fall back to a search', videoFor('no_such_dish') === null && linkFor(null, 'https://www.youtube.com/results?search_query=x').includes('search_query')]);
+checks.push(['phone link keeps the start time', linkFor({ youtubeId: 'dQw4w9WgXcQ', title: 't', startSeconds: 90 }, '') === 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=90s']);
+
 for (const [name, ok] of checks) console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
 const passed = checks.filter(([, ok]) => ok).length;
-console.log(`\n${passed}/${checks.length} photo and Target checks passed`);
+console.log(`\n${passed}/${checks.length} photo, Target and video checks passed`);
 process.exit(passed === checks.length ? 0 : 1);
