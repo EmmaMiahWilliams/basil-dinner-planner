@@ -62,7 +62,7 @@ export function VideoPlayer({ video, searchUrl, onOpened, onWatched }: VideoPlay
         width: '100%',
         height: '100%',
         host: 'https://www.youtube-nocookie.com',
-        playerVars: { rel: 0, modestbranding: 1, playsinline: 1 },
+        playerVars: { rel: 0, modestbranding: 1, playsinline: 1, ...(video.startSeconds ? { start: video.startSeconds } : {}) },
         events: {
           onStateChange: (e: any) => {
             if (e.data === YT.PlayerState.ENDED) watch.current.ended = true;
